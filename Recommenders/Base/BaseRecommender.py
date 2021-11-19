@@ -1,5 +1,5 @@
 import numpy as np
-from Recommenders.DataIO import DataIO
+from Utils.DataIO import DataIO
 from Recommenders.recommender_utils import check_matrix
 
 class BaseRecommender(object):

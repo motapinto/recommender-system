@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import time, os, traceback
 from Recommenders.Incremental_Training_Early_Stopping import Incremental_Training_Early_Stopping
-from Recommenders.DataIO import DataIO
+from Utils.DataIO import DataIO
 from Utils.Evaluator import get_result_string_df
 
 def create_result_multiindex_dataframe(n_cases, result_df):

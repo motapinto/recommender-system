@@ -1,4 +1,4 @@
-from Recommenders.DataIO import DataIO
+from Utils.DataIO import DataIO
 from Recommenders.Base.BaseRecommender import BaseRecommender
 
 class BaseSimilarityMatrixRecommender(BaseRecommender):

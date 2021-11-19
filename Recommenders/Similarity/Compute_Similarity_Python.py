@@ -1,8 +1,8 @@
 import numpy as np
 import time, sys
 import scipy.sparse as sps
-from Recommenders.Recommender_utils import check_matrix
-from Utils.seconds_to_biggest_unit import seconds_to_biggest_unit
+from Recommenders.recommender_utils import check_matrix
+from Utils.methods.seconds_to_biggest_unit import seconds_to_biggest_unit
 
 class Compute_Similarity_Python:
 
@@ -99,10 +99,6 @@ class Compute_Similarity_Python:
             self.dataMatrix_weighted = self.dataMatrix.T.dot(self.row_weights_diag).T
 
 
-
-
-
-
     def applyAdjustedCosine(self):
         """
         Remove from every data point the average for the corresponding row
@@ -110,8 +106,6 @@ class Compute_Similarity_Python:
         """
 
         self.dataMatrix = check_matrix(self.dataMatrix, 'csr')
-
-
         interactionsPerRow = np.diff(self.dataMatrix.indptr)
 
         nonzeroRows = interactionsPerRow > 0
@@ -127,18 +121,12 @@ class Compute_Similarity_Python:
 
         blockSize = 1000
 
-
         while end_row < self.n_rows:
-
             end_row = min(self.n_rows, end_row + blockSize)
-
             self.dataMatrix.data[self.dataMatrix.indptr[start_row]:self.dataMatrix.indptr[end_row]] -= \
                 np.repeat(rowAverage[start_row:end_row], interactionsPerRow[start_row:end_row])
 
             start_row += blockSize
-
-
-
 
     def applyPearsonCorrelation(self):
         """
@@ -148,15 +136,11 @@ class Compute_Similarity_Python:
 
         self.dataMatrix = check_matrix(self.dataMatrix, 'csc')
 
-
         interactionsPerCol = np.diff(self.dataMatrix.indptr)
-
         nonzeroCols = interactionsPerCol > 0
         sumPerCol = np.asarray(self.dataMatrix.sum(axis=0)).ravel()
-
         colAverage = np.zeros_like(sumPerCol)
         colAverage[nonzeroCols] = sumPerCol[nonzeroCols] / interactionsPerCol[nonzeroCols]
-
 
         # Split in blocks to avoid duplicating the whole data structure
         start_col = 0
@@ -164,9 +148,7 @@ class Compute_Similarity_Python:
 
         blockSize = 1000
 
-
         while end_col < self.n_columns:
-
             end_col = min(self.n_columns, end_col + blockSize)
 
             self.dataMatrix.data[self.dataMatrix.indptr[start_col]:self.dataMatrix.indptr[end_col]] -= \
@@ -174,9 +156,7 @@ class Compute_Similarity_Python:
 
             start_col += blockSize
 
-
     def useOnlyBooleanInteractions(self):
-
         # Split in blocks to avoid duplicating the whole data structure
         start_pos = 0
         end_pos= 0

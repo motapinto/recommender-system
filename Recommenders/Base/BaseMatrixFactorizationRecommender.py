@@ -1,5 +1,5 @@
 from Recommenders.Base.BaseRecommender import BaseRecommender
-from Recommenders.DataIO import DataIO
+from Utils.DataIO import DataIO
 import numpy as np
 
 class BaseMatrixFactorizationRecommender(BaseRecommender):
