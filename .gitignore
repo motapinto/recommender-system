@@ -1,6 +1,7 @@
 Recommenders__
 run_temp
 Utils/extra
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

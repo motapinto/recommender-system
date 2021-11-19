@@ -5,7 +5,7 @@ import pandas as pd
 from skopt import gp_minimize
 from skopt.space import Real, Integer, Categorical
 from Utils.methods.seconds_to_biggest_unit import seconds_to_biggest_unit
-from Recommenders.search.SearchAbstractClass import SearchAbstractClass
+from Recommenders.Search.SearchAbstractClass import SearchAbstractClass
 
 def _extend_dataframe(initial_dataframe, new_rows):
     if initial_dataframe is None:
