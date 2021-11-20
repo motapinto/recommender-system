@@ -1,4 +1,4 @@
-from Recommenders.search.SearchAbstractClass import SearchAbstractClass
+from Recommenders.Search.SearchAbstractClass import SearchAbstractClass
 import traceback
 
 class SearchSingleCase(SearchAbstractClass):

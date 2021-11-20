@@ -3,18 +3,14 @@ import pandas as pd
 import numpy as np
 from scipy import sparse as sps
 from sklearn.model_selection import train_test_split
+from Utils.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 
 class Dataset(object):
-    def __init__(self, path='./Data', validation=0.1, testing=0.1):
+    def __init__(self, path='./Data', train_percentage=0.8, val_split=False):
         URM = self.read_URM(path)
 
-        self.unique_users = URM['row'].unique()
-        self.num_users = len(self.unique_users)
-        
-        self.unique_items = URM['col'].unique()
-        self.num_items = len(self.unique_items)
-
-        self.n_interactions = len(URM)
+        num_users = len(URM['row'].unique())
+        num_items = len(URM['col'].unique())
 
         targets = self.read_targets(path)
         self.targets = np.unique(targets['user_id'])
@@ -26,24 +22,20 @@ class Dataset(object):
             'genre_ICM': sps.csr_matrix((ICM['genre_ICM']['data'], (ICM['genre_ICM']['row'], ICM['genre_ICM']['col']))), 
             'subgenre_ICM': sps.csr_matrix((ICM['subgenre_ICM']['data'], (ICM['subgenre_ICM']['row'], ICM['subgenre_ICM']['col'])))
         }
+
+        URM = sps.csr_matrix((URM['data'], (URM['row'], URM['col'])), shape = (num_users, num_items))
         
-        self.URM_train = None
-        self.URM_validation = None
-        self.URM_test = None
-
-        self.split(URM, validation, testing)
-
-
-    # def remove_empty_indices(data):
-    #     dict = {}
-    #     for user_id in data: dict[user_id] = len(dict)
-
+        self.URM_train_val, self.URM_test = split_train_in_two_percentage_global_sample(URM, train_percentage=train_percentage)
+        self.URM_train = self.URM_train_val
+        if val_split: self.URM_train, self.URM_val = split_train_in_two_percentage_global_sample(self.URM_train_val, train_percentage=train_percentage)
 
     def split(self, data, validation=0.1, test=0.1):
         seed = 9999
         user_train = data['row'] 
         item_train = data['col'] 
         rating_train = data['data'] 
+
+        split_train_in_two_percentage_global_sample(data, train_percentage = 0.8)
 
         (user_train, user_val,
         item_train, item_val,
