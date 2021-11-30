@@ -4,30 +4,35 @@ from skopt.space import Real, Integer, Categorical
 import traceback
 
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
-from Recommenders.Search.SearchSingleCase import SearchSingleCase
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 
-from Recommenders.CF.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
-from Recommenders.CF.KNN.UserKNNCFRecommender import UserKNNCFRecommender
-from Recommenders.CF.KNN.P3alphaRecommender import P3alphaRecommender
-from Recommenders.CF.KNN.RP3betaRecommender import RP3betaRecommender
-from Recommenders.CF.KNN.EASE_R_Recommender import EASE_R_Recommender
-# from Recommenders.SLIM.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
-# from Recommenders.SLIM.SLIMElasticNetRecommender import SLIMElasticNetRecommender, MultiThreadSLIM_SLIMElasticNetRecommender
-# from Recommenders.MatrixFactorization.PureSVDRecommender import PureSVDRecommender, PureSVDItemRecommender
-# from Recommenders.MatrixFactorization.IALSRecommender import IALSRecommender
+# KNN
+from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
+from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
+from Recommenders.CF.KNN.P3alpha import P3alpha
+from Recommenders.CF.KNN.RP3beta import RP3beta
+from Recommenders.CF.KNN.EASE_R import EASE_R
+
+# KNN machine learning
+from Recommenders.CF.KNN.MachineLearning.SLIM_BPR import SLIM_BPR
+from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet, MultiThreadSLIM_SLIMElasticNet
+
+# Matrix Factorization
+from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD
+from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
+from Recommenders.CF.MatrixFactorization.IALS import IALS
+from Recommenders.CF.MatrixFactorization.LightFM import LightFMCF
 # from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
 # from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
 # MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 # from Recommenders.Neural.MultVAERecommender import MultVAERecommender_OptimizerMask as MultVAERecommender
-# from Recommenders.FactorizationMachines.LightFMRecommender import LightFMCFRecommender
 
-# from Recommenders.KNN.ItemKNNCBFRecommender import ItemKNNCBFRecommender
-# from Recommenders.KNN.UserKNNCBFRecommender import UserKNNCBFRecommender
+# from Recommenders.KNN.ItemKNNCBF import ItemKNNCBF
+# from Recommenders.KNN.UserKNNCBF import UserKNNCBF
 
 # from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
 # from Recommenders.KNN.UserKNN_CFCBF_Hybrid_Recommender import UserKNN_CFCBF_Hybrid_Recommender
-# from Recommenders.FactorizationMachines.LightFMRecommender import LightFMItemHybridRecommender, LightFMUserHybridRecommender
+# from Recommenders.FactorizationMachines.LightFM import LightFMItemHybridRecommender, LightFMUserHybridRecommender
 # from Recommenders.FeatureWeighting.Cython.CFW_D_Similarity_Cython import CFW_D_Similarity_Cython
 # from Recommenders.FeatureWeighting.Cython.CFW_DVV_Similarity_Cython import CFW_DVV_Similarity_Cython
 # from Recommenders.FeatureWeighting.Cython.FBSM_Rating_Cython import FBSM_Rating_Cython
@@ -156,7 +161,7 @@ def runHyperparameterSearch_FeatureWeighting(
 #     '''
 #     This function performs the hyperparameter optimization for a hybrid collaborative and content-based recommender
 
-#     :param recommender_class:   Class of the recommender object to optimize, it must be a BaseRecommender type
+#     :param recommender_class:   Class of the recommender object to optimize, it must be a Base type
 #     :param URM_train:           Sparse matrix containing the URM training data
 #     :param ICM_object:          Sparse matrix containing the ICM training data
 #     :param ICM_name:            String containing the name of the ICM, will be used for the name of the output files
@@ -395,7 +400,7 @@ def run_KNNRecommender_on_similarity_type(
 #     '''
 #     This function performs the hyperparameter optimization for a content-based recommender
 
-#     :param recommender_class:   Class of the recommender object to optimize, it must be a BaseRecommender type
+#     :param recommender_class:   Class of the recommender object to optimize, it must be a Base type
 #     :param URM_train:           Sparse matrix containing the URM training data
 #     :param ICM_object:          Sparse matrix containing the ICM training data
 #     :param ICM_name:            String containing the name of the ICM, will be used for the name of the output files
@@ -427,7 +432,7 @@ def run_KNNRecommender_on_similarity_type(
 #     if URM_train_last_test is not None:
 #         URM_train_last_test = URM_train_last_test.copy()
 
-#     assert recommender_class in [ItemKNNCBFRecommender, UserKNNCBFRecommender]
+#     assert recommender_class in [ItemKNNCBF, UserKNNCBF]
 
 
 #     output_file_name_root = recommender_class.RECOMMENDER_NAME + '_{}'.format(ICM_name)
@@ -491,7 +496,7 @@ def runHyperparameterSearch_Collaborative(
     '''
     This function performs the hyperparameter optimization for a collaborative recommender
 
-    :param recommender_class:   Class of the recommender object to optimize, it must be a BaseRecommender type
+    :param recommender_class:   Class of the recommender object to optimize, it must be a Base type
     :param URM_train:           Sparse matrix containing the URM training data
     :param URM_train_last_test: Sparse matrix containing the union of URM training and validation data to be used in the last evaluation
     :param n_cases:             Number of hyperparameter sets to explore
@@ -532,7 +537,7 @@ def runHyperparameterSearch_Collaborative(
         output_file_name_root = recommender_class.RECOMMENDER_NAME
         hyperparameterSearch = SearchBayesianSkopt(recommender_class, evaluator_validation=evaluator_validation, evaluator_test=evaluator_test)
 
-        if recommender_class in [ItemKNNCFRecommender, UserKNNCFRecommender]:
+        if recommender_class in [ItemKNNCF, UserKNNCF]:
             if similarity_type_list is None:
                 similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
 
@@ -581,7 +586,7 @@ def runHyperparameterSearch_Collaborative(
 
             return
 
-        if recommender_class is P3alphaRecommender:
+        if recommender_class is P3alpha:
             hyperparameters_range_dictionary = {
                 'topK': Integer(5, 1000),
                 'alpha': Real(low = 0, high = 2, prior = 'uniform'),
@@ -595,12 +600,85 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is RP3betaRecommender:
+        if recommender_class is RP3beta:
             hyperparameters_range_dictionary = {
                 'topK': Integer(5, 1000),
                 'alpha': Real(low = 0, high = 2, prior = 'uniform'),
                 'beta': Real(low = 0, high = 2, prior = 'uniform'),
                 'normalize_similarity': Categorical([True, False]),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        if recommender_class is PureSVD:
+            hyperparameters_range_dictionary = {
+                'num_factors': Integer(1, 350),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        if recommender_class is PureSVDItem:
+            hyperparameters_range_dictionary = {
+                'num_factors': Integer(1, 350),
+                'topK': Integer(5, 1000),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        if recommender_class is SLIM_BPR:
+            hyperparameters_range_dictionary = {
+                'topK': Integer(5, 1000),
+                'epochs': Categorical([1500]),
+                'symmetric': Categorical([True, False]),
+                'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
+                'lambda_i': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'lambda_j': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {
+                    **earlystopping_keywargs,
+                }
+            )
+
+        if recommender_class is SLIMElasticNet or recommender_class is MultiThreadSLIM_SLIMElasticNet:
+            hyperparameters_range_dictionary = {
+                'alpha': Real(low = 1e-3, high = 1.0, prior = 'uniform'),
+                'l1_ratio': Real(low = 1e-5, high = 1.0, prior = 'log-uniform'),
+                'topK': Integer(5, 1000),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        if recommender_class is EASE_R:
+            hyperparameters_range_dictionary = {
+                'topK': Categorical([None]), #Integer(5, 3000),
+                'l2_norm': Real(low = 1e0, high = 1e7, prior = 'log-uniform'),
+                'normalize_matrix': Categorical([False]), # With normalize_matrix:True tends to perform worse
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -671,51 +749,25 @@ def runHyperparameterSearch_Collaborative(
         #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
         #         CONSTRUCTOR_KEYWORD_ARGS = {},
         #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {**earlystopping_keywargs,
-        #                             'positive_threshold_BPR': None}
+        #         FIT_KEYWORD_ARGS = {**earlystopping_keywargs}
         #     )
 
-        # if recommender_class is IALSRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'num_factors': Integer(1, 200),
-        #         'epochs': Categorical([300]),
-        #         'confidence_scaling': Categorical(['linear', 'log']),
-        #         'alpha': Real(low = 1e-3, high = 50.0, prior = 'log-uniform'),
-        #         'epsilon': Real(low = 1e-3, high = 10.0, prior = 'log-uniform'),
-        #         'reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #     }
+        if recommender_class is IALS:
+            hyperparameters_range_dictionary = {
+                'num_factors': Integer(1, 200),
+                'epochs': Categorical([300]),
+                'confidence_scaling': Categorical(['linear', 'log']),
+                'alpha': Real(low = 1e-3, high = 50.0, prior = 'log-uniform'),
+                'epsilon': Real(low = 1e-3, high = 10.0, prior = 'log-uniform'),
+                'reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+            }
 
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = earlystopping_keywargs
-        #     )
-
-        # if recommender_class is PureSVDRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'num_factors': Integer(1, 350),
-        #     }
-
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {}
-        #     )
-
-        # if recommender_class is PureSVDItemRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'num_factors': Integer(1, 350),
-        #         'topK': Integer(5, 1000),
-        #     }
-
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {}
-        #     )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = earlystopping_keywargs
+            )
 
         # if recommender_class is NMFRecommender:
         #     hyperparameters_range_dictionary = {
@@ -732,74 +784,23 @@ def runHyperparameterSearch_Collaborative(
         #         FIT_KEYWORD_ARGS = {}
         #     )
 
-        # if recommender_class is SLIM_BPR_Cython:
-        #     hyperparameters_range_dictionary = {
-        #         'topK': Integer(5, 1000),
-        #         'epochs': Categorical([1500]),
-        #         'symmetric': Categorical([True, False]),
-        #         'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-        #         'lambda_i': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'lambda_j': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
-        #     }
-
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {
-        #             **earlystopping_keywargs,
-        #             'positive_threshold_BPR': None,
-        #             'train_with_sparse_weights': None,
-        #             'allow_train_with_sparse_weights': False
-        #         }
-        #     )
-
-        # if recommender_class is SLIMElasticNetRecommender or recommender_class is MultiThreadSLIM_SLIMElasticNetRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'topK': Integer(5, 1000),
-        #         'l1_ratio': Real(low = 1e-5, high = 1.0, prior = 'log-uniform'),
-        #         'alpha': Real(low = 1e-3, high = 1.0, prior = 'uniform'),
-        #     }
-
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {}
-        #     )
-
-        if recommender_class is EASE_R_Recommender:
+        if recommender_class is LightFMCF:
             hyperparameters_range_dictionary = {
-                'topK': Categorical([None]),#Integer(5, 3000),
-                'normalize_matrix': Categorical([False]),
-                'l2_norm': Real(low = 1e0, high = 1e7, prior = 'log-uniform'),
+                'epochs': Categorical([300]),
+                'n_components': Integer(1, 200),
+                'loss': Categorical(['bpr', 'warp', 'warp-kos']),
+                'sgd_mode': Categorical(['adagrad', 'adadelta']),
+                'learning_rate': Real(low = 1e-6, high = 1e-1, prior = 'log-uniform'),
+                'item_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'user_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
                 CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
                 CONSTRUCTOR_KEYWORD_ARGS = {},
                 FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {}
+                FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
-
-        # if recommender_class is LightFMCFRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'epochs': Categorical([300]),
-        #         'n_components': Integer(1, 200),
-        #         'loss': Categorical(['bpr', 'warp', 'warp-kos']),
-        #         'sgd_mode': Categorical(['adagrad', 'adadelta']),
-        #         'learning_rate': Real(low = 1e-6, high = 1e-1, prior = 'log-uniform'),
-        #         'item_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'user_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #     }
-
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = earlystopping_keywargs
-        #     )
 
         # if recommender_class is MultVAERecommender:
         #     n_items = URM_train.shape[1]
@@ -819,13 +820,6 @@ def runHyperparameterSearch_Collaborative(
         #         # Reduce max_layer_size if estimated last layer weights size exceeds 2 GB
         #         'max_layer_size': Categorical([min(5*1e3, int(2*1e9*8/64/n_items))]),
         #     }
-
-            recommender_input_args = SearchInputRecommenderArgs(
-                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-                CONSTRUCTOR_KEYWORD_ARGS = {},
-                FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = earlystopping_keywargs
-            )
 
         if URM_train_last_test is not None:
             recommender_input_args_last_test = recommender_input_args.copy()

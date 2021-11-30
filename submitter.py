@@ -1,20 +1,29 @@
 import os
 from Utils.Dataset import Dataset
-from Recommenders.CF.KNN.ItemKNNCFRecommender import ItemKNNCFRecommender
-from Recommenders.CF.KNN.UserKNNCFRecommender import UserKNNCFRecommender
-from Recommenders.CF.KNN.RP3betaRecommender import RP3betaRecommender
-from Recommenders.CF.KNN.P3alphaRecommender import P3alphaRecommender
-from Recommenders.CF.KNN.EASE_R_Recommender import EASE_R_Recommender
+from Utils.Evaluator import EvaluatorHoldout
 from Utils.submission import get_submission, save_submission
 
+from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
+from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
+from Recommenders.CF.KNN.RP3beta import RP3beta
+from Recommenders.CF.KNN.P3alpha import P3alpha
+from Recommenders.CF.KNN.EASE_R import EASE_R
+from Recommenders.CF.KNN.MachineLearning.SLIM_BPR import SLIM_BPR
+from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet
+from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
+from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
+from Recommenders.CF.MatrixFactorization.IALS import IALS
+
+from Recommenders.Hybrid.Hybrid import Hybrid
+
 if __name__ == '__main__':
-    dataset = Dataset(path='./Data', train_percentage=0.9, val_split=False)
-    recommender = UserKNNCFRecommender(dataset.URM_train)
-    
+    dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0.1)
+
+    recommender = Hybrid(dataset.URM_train, dataset.ICM['genre_ICM'])
     recommender.fit()
-    # output_folder_path = os.path.join('Recommenders', 'tuner_results'+os.sep)
+
     # recommender.load_model(
-    #     output_folder_path,
+    #     os.path.join('Recommenders', 'tuner_results'+os.sep),
     #     file_name=recommender.RECOMMENDER_NAME+'_best_model_last.zip'
     # )
 

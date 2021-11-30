@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sps
 from Utils.IncrementalSparseMatrix import IncrementalSparseMatrix
 
-def split_train_in_two_percentage_user_wise(URM_train, train_percentage = 0.1, verbose = False):
+def split_train_in_two_percentage_user_wise(URM_train, train_percentage = 0.1, verbose=False):
     '''
     The function splits an URM in two matrices selecting the number of interactions one user at a time
     :param URM_train:

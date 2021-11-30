@@ -377,7 +377,7 @@ class Coverage_Item(_Global_Item_Distribution_Counter):
     '''
 
     def __init__(self, n_items, ignore_items):
-        super(Coverage_Item, self).__init__( n_items, ignore_items)
+        super(Coverage_Item, self).__init__(n_items, ignore_items)
 
     def get_metric_value(self):
 

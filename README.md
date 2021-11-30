@@ -12,7 +12,7 @@ The training-test split is done via random holdout, 85% training, 15% test.
 The goal is to recommend a list of 10 potentially relevant items for each user. MAP@10 is used for evaluation. You can use any kind of recommender algorithm you wish e.g., collaborative-filtering, content-based, hybrid, etc. written in Python.
 
 - py -m venv env
-- .\env\Scripts\activate
+- .\venv\Scripts\activate
+- pip install -r requirements.txt
 - py -m pip freeze > requirements.txt
-- (py -m pip freeze)
 - deactivate

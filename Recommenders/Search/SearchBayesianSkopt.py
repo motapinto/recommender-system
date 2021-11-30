@@ -45,13 +45,13 @@ class NoValidConfigError(Exception):
 class SearchBayesianSkopt(SearchAbstractClass):
     ALGORITHM_NAME = 'SearchBayesianSkopt'
 
-    def __init__(self, recommender_class, evaluator_validation = None, evaluator_test = None, verbose = True):
+    def __init__(self, recommender_class, evaluator_validation = None, evaluator_test = None, verbose=True):
         assert evaluator_validation is not None, '{}: evaluator_validation must be provided'.format(self.ALGORITHM_NAME)
         super(SearchBayesianSkopt, self).__init__(
             recommender_class,
             evaluator_validation = evaluator_validation,
             evaluator_test = evaluator_test,
-            verbose = verbose)
+            verbose=verbose)
 
     def _set_skopt_params(
         self,

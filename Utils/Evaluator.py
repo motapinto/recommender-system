@@ -215,16 +215,13 @@ class Evaluator(object):
 
     def evaluateRecommender(self, recommender_object):
         '''
-        :param recommender_object: the trained recommender object, a BaseRecommender subclass
+        :param recommender_object: the trained recommender object, a Base subclass
         :param URM_test_list: list of URMs to test the recommender against, or a single URM object
         :param cutoff_list: list of cutoffs to be use to report the scores, or a single cutoff
         :return results_df: dataframe with index the cutoff and columns the metric
         :return results_run_string: printable result string
         '''
-
-        if self.ignore_items_flag:
-            recommender_object.set_items_to_ignore(self.ignore_items_ID)
-
+        
         self._start_time = time.time()
         self._start_time_print = time.time()
         self._n_users_evaluated = 0
@@ -253,9 +250,6 @@ class Evaluator(object):
 
         else:
             self._print('WARNING: No users had a sufficient number of relevant items')
-
-        if self.ignore_items_flag:
-            recommender_object.reset_items_to_ignore()
 
         results_df = pd.DataFrame(
             columns=results_dict[self.cutoff_list[0]].keys(),
@@ -375,12 +369,9 @@ class EvaluatorHoldout(Evaluator):
             diversity_object = diversity_object,
             min_ratings_per_user =min_ratings_per_user, exclude_seen=exclude_seen,
             ignore_items = ignore_items, ignore_users = ignore_users,
-            verbose = verbose)
+            verbose=verbose)
 
-    def _run_evaluation_on_selected_users(self, recommender_object, users_to_evaluate, block_size = None):
-        if block_size is None:
-            # Reduce block size if estimated memory requirement exceeds 4 GB
-            block_size = min([1000, int(4*1e9*8/64/self.n_items), len(users_to_evaluate)])
+    def _run_evaluation_on_selected_users(self, recommender_object, users_to_evaluate):
 
         results_dict = _create_empty_metrics_dict(
             self.cutoff_list,
@@ -391,16 +382,12 @@ class EvaluatorHoldout(Evaluator):
             self.ignore_users_ID,
             self.diversity_object)
 
-
-        if self.ignore_items_flag:
-            recommender_object.set_items_to_ignore(self.ignore_items_ID)
-
         # Start from -block_size to ensure it to be 0 at the first block
         user_batch_start = 0
         user_batch_end = 0
+        block_size = min([1000, int(4*1e9*8/64/self.n_items), len(users_to_evaluate)])
 
         while user_batch_start < len(users_to_evaluate):
-
             user_batch_end = user_batch_start + block_size
             user_batch_end = min(user_batch_end, len(users_to_evaluate))
 
@@ -412,8 +399,6 @@ class EvaluatorHoldout(Evaluator):
                 test_user_batch_array,
                 remove_seen_flag=self.exclude_seen,
                 cutoff = self.max_cutoff,
-                remove_top_pop_flag=False,
-                remove_custom_items_flag=self.ignore_items_flag,
                 return_scores = True)
 
             results_dict = self._compute_metrics_on_recommendation_list(
@@ -464,9 +449,7 @@ class EvaluatorNegativeItemSample(Evaluator):
         items_to_compute = self.URM_items_to_rank.indices[start_pos:end_pos]
         return items_to_compute
 
-    def _run_evaluation_on_selected_users(
-        self, recommender_object, users_to_evaluate, block_size = None
-    ):
+    def _run_evaluation_on_selected_users(self, recommender_object, users_to_evaluate):
         results_dict = _create_empty_metrics_dict(
             self.cutoff_list,
             self.n_items, self.n_users,
@@ -476,18 +459,13 @@ class EvaluatorNegativeItemSample(Evaluator):
             self.ignore_users_ID,
             self.diversity_object)
 
-        if self.ignore_items_flag:
-            recommender_object.set_items_to_ignore(self.ignore_items_ID)
-
         for test_user in users_to_evaluate:
             items_to_compute = self._get_user_specific_items_to_compute(test_user)
             recommended_items, all_items_predicted_ratings = recommender_object.recommend(
                 np.atleast_1d(test_user),
                 remove_seen_flag=self.exclude_seen,
                 cutoff = self.max_cutoff,
-                remove_top_pop_flag=False,
                 items_to_compute = items_to_compute,
-                remove_custom_items_flag=self.ignore_items_flag,
                 return_scores = True)
 
             results_dict = self._compute_metrics_on_recommendation_list(

@@ -1,4 +1,5 @@
 import os
+import similaripy as sim
 import pandas as pd
 import numpy as np
 from scipy import sparse as sps
@@ -6,11 +7,16 @@ from sklearn.model_selection import train_test_split
 from Utils.split_functions.split_train_validation_random_holdout import split_train_in_two_percentage_global_sample
 
 class Dataset(object):
-    def __init__(self, path='./Data', train_percentage=0.8, val_split=False):
+    def __init__(self, path='./Data', validation_percentage=0.1, test_percentage=0.2):
+        # Note: no need to create new mapping, since all item identifiers are present in the URM
         URM = self.read_URM(path)
 
-        num_users = len(URM['row'].unique())
-        num_items = len(URM['col'].unique())
+        unique_users = URM['row'].unique()
+        self.num_users = len(unique_users)
+        unique_items = URM['col'].unique()
+        self.num_items = len(unique_items)
+        
+        self.split(URM, validation_percentage, test_percentage)
 
         targets = self.read_targets(path)
         self.targets = np.unique(targets['user_id'])
@@ -22,54 +28,52 @@ class Dataset(object):
             'genre_ICM': sps.csr_matrix((ICM['genre_ICM']['data'], (ICM['genre_ICM']['row'], ICM['genre_ICM']['col']))), 
             'subgenre_ICM': sps.csr_matrix((ICM['subgenre_ICM']['data'], (ICM['subgenre_ICM']['row'], ICM['subgenre_ICM']['col'])))
         }
-
-        URM = sps.csr_matrix((URM['data'], (URM['row'], URM['col'])), shape = (num_users, num_items))
-        
-        self.URM_train_val, self.URM_test = split_train_in_two_percentage_global_sample(URM, train_percentage=train_percentage)
-        self.URM_train = self.URM_train_val
-        if val_split: self.URM_train, self.URM_val = split_train_in_two_percentage_global_sample(self.URM_train_val, train_percentage=train_percentage)
-
-    def split(self, data, validation=0.1, test=0.1):
+    
+    def split(self, data, validation_percentage=0.1, test_percentage=0.1):
         seed = 9999
         user_train = data['row'] 
         item_train = data['col'] 
         rating_train = data['data'] 
 
-        split_train_in_two_percentage_global_sample(data, train_percentage = 0.8)
-
-        (user_train, user_val,
-        item_train, item_val,
-        rating_train, rating_val) = train_test_split(
+        (user_train, user_test,
+        item_train, item_test,
+        rating_train, rating_test) = train_test_split(
             data['row'],
             data['col'],
             data['data'],
-            test_size=validation+test,
+            test_size=test_percentage,
             random_state=seed
         )
 
-        (user_val, user_ids_test,
-        item_val, item_ids_test,
-        rating_val, ratings_test) = train_test_split(
-            user_val,
-            item_val,
-            rating_val,
-            test_size=0.5,
-            shuffle=True,
-            random_state=seed
-        )
+        if validation_percentage > 0:
+            self.URM_train_val = sps.csr_matrix(
+                (rating_train, (user_train, item_train)), 
+                shape=(self.num_users, self.num_items)
+            )
+
+            (user_train, user_val,
+            item_train, item_val,
+            rating_train, rating_val) = train_test_split(
+                user_train,
+                item_train,
+                rating_train,
+                test_size=validation_percentage,
+                shuffle=True,
+                random_state=seed
+            )
+
+            self.URM_val = sps.csr_matrix(
+                (rating_val, (user_val, item_val)), 
+                shape=(self.num_users, self.num_items)
+            )
 
         self.URM_train = sps.csr_matrix(
             (rating_train, (user_train, item_train)), 
             shape=(self.num_users, self.num_items)
         )
-
-        self.URM_validation = sps.csr_matrix(
-            (rating_val, (user_val, item_val)), 
-            shape=(self.num_users, self.num_items)
-        )
-        
+            
         self.URM_test = sps.csr_matrix(
-            (ratings_test, (user_ids_test, item_ids_test)), 
+            (rating_test, (user_test, item_test)), 
             shape=(self.num_users, self.num_items)
         )
 
@@ -110,6 +114,13 @@ class Dataset(object):
         }
 
         return ICM
+
+    def aggregate_matrixes(self):
+        ICM_normalized = sim.normalization.bm25(self.ICM['genre_ICM'])
+        aggregated_matrixes_1 = sps.vstack([self.URM_train, ICM_normalized.T])
+        aggregated_matrixes_2 = sim.normalization.bm25(sps.vstack([self.URM_train, self.ICM['genre_ICM'].T]))
+
+        return ICM_normalized, aggregated_matrixes_1, aggregated_matrixes_2 
 
     def read_URM(self, path):
         URM = pd.read_csv(os.path.join(path, 'data_train.csv'),

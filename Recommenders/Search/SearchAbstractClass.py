@@ -434,11 +434,11 @@ class SearchAbstractClass(object):
                     get_result_string_prettyprint(result_series, n_decimals=7)))
 
                 if self.evaluate_on_test in ['all', 'best']:
-                    result_df_test = self._evaluate_on_test(recommender_instance, current_fit_hyperparameters_dict,
-                                                            was_already_evaluated_flag, was_already_evaluated_index, print_log = True)
+                    result_df_test = self._evaluate_on_test(
+                        recommender_instance, current_fit_hyperparameters_dict,
+                        was_already_evaluated_flag, was_already_evaluated_index, print_log = True)
 
             else:
-
                 # Config is either suboptimal or was already explored previously
                 self._write_log('{}: Config {} {}. Config: {} - results: {}\n'.format(
                     self.ALGORITHM_NAME,
@@ -453,8 +453,9 @@ class SearchAbstractClass(object):
                         was_already_evaluated_flag, was_already_evaluated_index, print_log = True)
 
             if current_result >= self.INVALID_CONFIG_VALUE:
-                self._write_log('{}: WARNING! Config {} returned a value equal or worse than the default value to be assigned to invalid configurations.'
-                                ' If no better valid configuration is found, this hyperparameter search may produce an invalid result.\n')
+                self._write_log(
+                    '{}: WARNING! Config {} returned a value equal or worse than the default value to be assigned to invalid configurations.'
+                    ' If no better valid configuration is found, this hyperparameter search may produce an invalid result.\n')
 
             if new_best_config_found:
                 self.metadata_dict['hyperparameters_best'] = current_fit_hyperparameters_dict.copy()

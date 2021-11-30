@@ -43,7 +43,7 @@ def check_matrix(X, format='csc', dtype=np.float32):
     else:
         return X.astype(dtype)
 
-def similarityMatrixTopK(item_weights, k=100, verbose = False):
+def similarityMatrixTopK(item_weights, k=100, verbose=False):
     '''
     The function selects the TopK most similar elements, column-wise
 

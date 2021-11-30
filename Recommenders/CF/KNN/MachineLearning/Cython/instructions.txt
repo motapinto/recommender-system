@@ -1,0 +1,5 @@
+- python compileCython.py Sparse_Matrix_Tree_CSR.pyx build_ext --inplace
+- python compileCython.py Triangular_Matrix.pyx build_ext --inplace
+- python compileCython.py SLIM_BPR_Epoch.pyx build_ext --inplace
+
+!From https://github.com/MaurizioFD/RecSys_Course_AT_PoliMi/blob/master/Practice%2006%20-%20SLIM%20MSE%20with%20Gradient%20Descent%20and%20Cython.ipynb

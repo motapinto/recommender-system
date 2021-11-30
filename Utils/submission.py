@@ -1,8 +1,8 @@
 import numpy as np
 from tqdm import tqdm
-from Recommenders.Base.BaseRecommender import BaseRecommender
+from Recommenders.Base.Base import Base
 
-def get_submission(targets: np.array, recommender: BaseRecommender):
+def get_submission(targets: np.array, recommender: Base):
     recommendations_array = recommender.recommend(user_id_array=targets, cutoff=10)
     return recommendations_array
 
