@@ -366,9 +366,9 @@ class EvaluatorHoldout(Evaluator):
 
         super(EvaluatorHoldout, self).__init__(
             URM_test_list, cutoff_list,
-            diversity_object = diversity_object,
-            min_ratings_per_user =min_ratings_per_user, exclude_seen=exclude_seen,
-            ignore_items = ignore_items, ignore_users = ignore_users,
+            diversity_object=diversity_object,
+            min_ratings_per_user=min_ratings_per_user, exclude_seen=exclude_seen,
+            ignore_items=ignore_items, ignore_users=ignore_users,
             verbose=verbose)
 
     def _run_evaluation_on_selected_users(self, recommender_object, users_to_evaluate):

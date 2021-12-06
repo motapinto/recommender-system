@@ -1,0 +1,21 @@
+Hybrid recommenders ----
+- Stacking URM, ICM, UCM
+- Combine models with same structure (all item based similaruty models)
+- Combine models with different structure (user based, item based and matrix factorization)
+- Combine models with different loss functions (ranking vs rating prediction)
+- Which models performs better for a certain category of users (interactions)
+
+Stacking
+- concatenate URM and ICM and have a stack URM and stack ICM
+- we can plug all icm together or choose which pair combines better
+- weights in matrixes can become hyper-parameter
+- apply weights in some matrixes have zero effect in some models
+- Warning: some icms have garbage
+- which users to include in the calcualtion of the similarity using feature weighting (treat users has features)
+
+Combine models with same structure (parameters have same mearning)
+- For example two user based, item based models
+- More difficult in matrix factorization (not used normally)
+- Simplest solution: weighted average (solutions are better for weihted avreage between 2 models)
+- Normalization can be required is order of magnitude is very different
+- Value range can be very different between models with different structure

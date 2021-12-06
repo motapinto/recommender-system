@@ -20,7 +20,7 @@ if __name__ == '__main__':
     ICM_normalized, aggregated_matrixes_1, aggregated_matrixes_2 = dataset.aggregate_matrixes()
 
     evaluator_test = EvaluatorHoldout(dataset.URM_test, cutoff_list=[10])
-    recommender = Hybrid(dataset.URM_train, dataset.ICM['genre_ICM'])
+    recommender = Hybrid(dataset.URM_train, dataset.ICM)
     recommender.fit()
 
     result_df, _ = evaluator_test.evaluateRecommender(recommender)

@@ -9,7 +9,7 @@ from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
 from Recommenders.CB.KNN.UserKNNCBF import UserKNNCBF
 
 class Hybrid(Base):
-  RECOMMENDER_NAME = "Hybrid"
+  RECOMMENDER_NAME = 'Hybrid'
   def __init__(self, URM_train, ICM):
     super(Hybrid, self).__init__(URM_train)
     
