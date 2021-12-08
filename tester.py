@@ -1,4 +1,7 @@
-import os
+import time
+from tqdm import trange
+
+from numpy.lib.function_base import average
 from Recommenders.CF.MatrixFactorization.IALS import IALS
 from Utils.Dataset import Dataset
 from Utils.Evaluator import EvaluatorHoldout
@@ -13,19 +16,44 @@ from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet
 from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 
-from Recommenders.Hybrid.Hybrid import Hybrid
+from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
 
-if __name__ == '__main__':
-    dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0.1)
-    ICM_normalized, aggregated_matrixes_1, aggregated_matrixes_2 = dataset.aggregate_matrixes()
-
-    evaluator_test = EvaluatorHoldout(dataset.URM_test, cutoff_list=[10])
-    recommender = Hybrid(dataset.URM_train, dataset.ICM)
+def evaluate_recommender(recommender_class, URM_train, ICM, URM_test):
+    if recommender_class == ItemKNN_CFCBF_Hybrid:
+        recommender = recommender_class(URM_train, ICM)
+    else:
+        recommender = recommender_class(URM_train)
+    
     recommender.fit()
 
+    start = time.time()
+    evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
     result_df, _ = evaluator_test.evaluateRecommender(recommender)
-    print(result_df.loc[10])
+    end = time.time()
 
+    return result_df, end-start
+
+if __name__ == '__main__':
+    dataset = Dataset(path='./Data', k=5, validation_percentage=0, test_percentage=0.2)
+    test_models = [ItemKNN_CFCBF_Hybrid ]#, UserKNNCF, ItemKNNCF, EASE_R, RP3beta]
+
+    if dataset.cross_val:
+        avg_results = []
+        for model in test_models:
+            result_array = []
+            for i in trange(dataset.k):                
+                result_df, exec_time = evaluate_recommender(model, 
+                    dataset.URM_trains[i], dataset.ICM, dataset.URM_tests[i])
+                
+                result_array.append(result_df.loc[10]['MAP'])
+                print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
+                    result_df.loc[10]['MAP'], exec_time))
+            
+            avg_results.append(average(result_array))
+
+        for model_idx, map in enumerate(avg_results):
+            print(f'Recommender: {test_models[model_idx].RECOMMENDER_NAME} | MAP@10: {map}')
+            
     # if recommender_class == IALS or recommender_class == SLIM_BPR or recommender_class == SLIMElasticNet:
     #     earlystopping_keywargs = {
     #         'validation_every_n': 5,
@@ -38,25 +66,5 @@ if __name__ == '__main__':
     # else: 
     # recommender.fit()
 
-    # result_df, _ = evaluator_test.evaluateRecommender(recommender)
-    # precision_metric = result_df.loc[10]['Precision']
-    # map_metric = result_df.loc[10]['MAP']
 
-    # output_folder_path = os.path.join('Recommenders', 'tuner_results'+os.sep)
-    # filename = recommender.RECOMMENDER_NAME+'_best_model_last.zip'
-    # # if os.path.isfile(os.path.join(output_folder_path, filename)):
-    # #     best_recommender = get_recommender_instance(recommender_class, dataset.URM_train, dataset.ICM)
-    # #     best_recommender.load_model(output_folder_path, filename)
-
-    # #     best_result_df, _ = evaluator_test.evaluateRecommender(best_recommender)
-    # #     best_precision_metric = result_df.loc[10]['Precision']
-    # #     best_map_metric = result_df.loc[10]['MAP']
-
-    # #     if best_map_metric < map_metric && best_precision_metric < map_metric:
-    # #         best_result_df = result_df
-    # #         recommender.save_model(output_folder_path, filename)
-    # # else: 
-        
-    # # recommender.save_model(output_folder_path, filename)
-    # print(result_df.loc[10])
         

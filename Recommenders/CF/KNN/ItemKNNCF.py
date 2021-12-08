@@ -11,9 +11,15 @@ class ItemKNNCF(BaseItemSimilarityMatrix):
     def __init__(self, URM_train, verbose=True):
         super(ItemKNNCF, self).__init__(URM_train, verbose=verbose)
 
-    def fit(self, topK=62, shrink=329, similarity='asymmetric', normalize=True, feature_weighting='none', URM_bias=True, **similarity_args):
+    def fit(self, topK=46, shrink=31, similarity='tversky', normalize=True, feature_weighting='BM25', URM_bias=1000.0, **similarity_args):
         self.topK = topK
         self.shrink = shrink
+
+        if(len(similarity_args) == 0):
+            similarity_args = {
+                'tversky_alpha': 0.022632810966513674, 
+                'tversky_beta': 1.0589896897155855,
+            } 
 
         if feature_weighting not in self.FEATURE_WEIGHTING_VALUES:
             raise ValueError(f'Value for \'feature_weighting\' not recognized. Acceptable values are {self.FEATURE_WEIGHTING_VALUES}, provided was {feature_weighting}')

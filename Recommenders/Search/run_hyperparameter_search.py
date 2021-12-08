@@ -30,8 +30,7 @@ from Recommenders.CF.MatrixFactorization.LightFM import LightFMCF
 # from Recommenders.KNN.ItemKNNCBF import ItemKNNCBF
 # from Recommenders.KNN.UserKNNCBF import UserKNNCBF
 
-# from Recommenders.KNN.ItemKNN_CFCBF_Hybrid_Recommender import ItemKNN_CFCBF_Hybrid_Recommender
-# from Recommenders.KNN.UserKNN_CFCBF_Hybrid_Recommender import UserKNN_CFCBF_Hybrid_Recommender
+from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
 # from Recommenders.FactorizationMachines.LightFM import LightFMItemHybridRecommender, LightFMUserHybridRecommender
 # from Recommenders.FeatureWeighting.Cython.CFW_D_Similarity_Cython import CFW_D_Similarity_Cython
 # from Recommenders.FeatureWeighting.Cython.CFW_DVV_Similarity_Cython import CFW_DVV_Similarity_Cython
@@ -151,124 +150,110 @@ def runHyperparameterSearch_FeatureWeighting(
     #     cutoff_to_optimize = cutoff_to_optimize)
 
 
-# def runHyperparameterSearch_Hybrid(
-#     recommender_class, URM_train, ICM_object, ICM_name, URM_train_last_test = None,
-#     n_cases = None, n_random_starts = None, resume_from_saved = False,
-#     save_model = 'best', evaluate_on_test = 'best', max_total_time = None, evaluator_validation_earlystopping = None,
-#     evaluator_validation= None, evaluator_test=None, metric_to_optimize = None, cutoff_to_optimize = None,
-#     output_folder_path ='result_experiments/', parallelizeKNN = False, allow_weighting = True,
-#     similarity_type_list = None):
-#     '''
-#     This function performs the hyperparameter optimization for a hybrid collaborative and content-based recommender
+def runHyperparameterSearch_Hybrid(
+    recommender_class, URM_train, ICM_object, ICM_name, URM_train_last_test = None,
+    n_cases = None, n_random_starts = None, resume_from_saved = False,
+    save_model = 'best', evaluate_on_test = 'best', max_total_time = None, evaluator_validation_earlystopping = None,
+    evaluator_validation= None, evaluator_test=None, metric_to_optimize = None, cutoff_to_optimize = None,
+    output_folder_path ='result_experiments/', parallelizeKNN = False, allow_weighting = True,
+    similarity_type_list = None):
+    '''
+    This function performs the hyperparameter optimization for a hybrid collaborative and content-based recommender
 
-#     :param recommender_class:   Class of the recommender object to optimize, it must be a Base type
-#     :param URM_train:           Sparse matrix containing the URM training data
-#     :param ICM_object:          Sparse matrix containing the ICM training data
-#     :param ICM_name:            String containing the name of the ICM, will be used for the name of the output files
-#     :param URM_train_last_test: Sparse matrix containing the union of URM training and validation data to be used in the last evaluation
-#     :param n_cases:             Number of hyperparameter sets to explore
-#     :param n_random_starts:     Number of the initial random hyperparameter values to explore, usually set at 30% of n_cases
-#     :param resume_from_saved:   Boolean value, if True the optimization is resumed from the saved files, if False a new one is done
-#     :param save_model:          ['no', 'best', 'last'] which of the models to save, see HyperparameterTuning/SearchAbstractClass for details
-#     :param evaluate_on_test:    ['all', 'best', 'last', 'no'] when to evaluate the model on the test data, see HyperparameterTuning/SearchAbstractClass for details
-#     :param max_total_time:    [None or int] if set stops the hyperparameter optimization when the time in seconds for training and validation exceeds the threshold
-#     :param evaluator_validation:    Evaluator object to be used for the validation of each hyperparameter set
-#     :param evaluator_validation_earlystopping:   Evaluator object to be used for the earlystopping of ML algorithms, can be the same of evaluator_validation
-#     :param evaluator_test:          Evaluator object to be used for the test results, the output will only be saved but not used
-#     :param metric_to_optimize:  String with the name of the metric to be optimized as contained in the output of the evaluator objects
-#     :param cutoff_to_optimize:  Integer with the recommendation list length to be optimized as contained in the output of the evaluator objects
-#     :param output_folder_path:  Folder in which to save the output files
-#     :param parallelizeKNN:      Boolean value, if True the various heuristics of the KNNs will be computed in parallel, if False sequentially
-#     :param allow_weighting:     Boolean value, if True it enables the use of TF-IDF and BM25 to weight features, users and items in KNNs
-#     :param similarity_type_list: List of strings with the similarity heuristics to be used for the KNNs
-#     '''
+    :param recommender_class:   Class of the recommender object to optimize, it must be a Base type
+    :param URM_train:           Sparse matrix containing the URM training data
+    :param ICM_object:          Sparse matrix containing the ICM training data
+    :param ICM_name:            String containing the name of the ICM, will be used for the name of the output files
+    :param URM_train_last_test: Sparse matrix containing the union of URM training and validation data to be used in the last evaluation
+    :param n_cases:             Number of hyperparameter sets to explore
+    :param n_random_starts:     Number of the initial random hyperparameter values to explore, usually set at 30% of n_cases
+    :param resume_from_saved:   Boolean value, if True the optimization is resumed from the saved files, if False a new one is done
+    :param save_model:          ['no', 'best', 'last'] which of the models to save, see HyperparameterTuning/SearchAbstractClass for details
+    :param evaluate_on_test:    ['all', 'best', 'last', 'no'] when to evaluate the model on the test data, see HyperparameterTuning/SearchAbstractClass for details
+    :param max_total_time:    [None or int] if set stops the hyperparameter optimization when the time in seconds for training and validation exceeds the threshold
+    :param evaluator_validation:    Evaluator object to be used for the validation of each hyperparameter set
+    :param evaluator_validation_earlystopping:   Evaluator object to be used for the earlystopping of ML algorithms, can be the same of evaluator_validation
+    :param evaluator_test:          Evaluator object to be used for the test results, the output will only be saved but not used
+    :param metric_to_optimize:  String with the name of the metric to be optimized as contained in the output of the evaluator objects
+    :param cutoff_to_optimize:  Integer with the recommendation list length to be optimized as contained in the output of the evaluator objects
+    :param output_folder_path:  Folder in which to save the output files
+    :param parallelizeKNN:      Boolean value, if True the various heuristics of the KNNs will be computed in parallel, if False sequentially
+    :param allow_weighting:     Boolean value, if True it enables the use of TF-IDF and BM25 to weight features, users and items in KNNs
+    :param similarity_type_list: List of strings with the similarity heuristics to be used for the KNNs
+    '''
 
-#     # If directory does not exist, create
-#     if not os.path.exists(output_folder_path):
-#         os.makedirs(output_folder_path)
+    if not os.path.exists(output_folder_path):
+        os.makedirs(output_folder_path)
 
-#     URM_train = URM_train.copy()
-#     ICM_object = ICM_object.copy()
+    URM_train = URM_train.copy()
+    ICM_object = ICM_object.copy()
 
-#     if URM_train_last_test is not None: URM_train_last_test = URM_train_last_test.copy()
+    if URM_train_last_test is not None: URM_train_last_test = URM_train_last_test.copy()
 
-#     earlystopping_keywargs = {
-#         'validation_every_n': 5,
-#         'stop_on_validation': True,
-#         'evaluator_object': evaluator_validation_earlystopping,
-#         'lower_validations_allowed': 5,
-#         'validation_metric': metric_to_optimize,
-#     }
+    earlystopping_keywargs = {
+        'validation_every_n': 5,
+        'stop_on_validation': True,
+        'evaluator_object': evaluator_validation_earlystopping,
+        'lower_validations_allowed': 5,
+        'validation_metric': metric_to_optimize,
+    }
 
+    try:
+        output_file_name_root = recommender_class.RECOMMENDER_NAME + '_{}'.format(ICM_name)
+        hyperparameterSearch = SearchBayesianSkopt(recommender_class, evaluator_validation=evaluator_validation, evaluator_test=evaluator_test)
 
-#     try:
-#         output_file_name_root = recommender_class.RECOMMENDER_NAME + '_{}'.format(ICM_name)
-#         hyperparameterSearch = SearchBayesianSkopt(recommender_class, evaluator_validation=evaluator_validation, evaluator_test=evaluator_test)
+        if recommender_class == ItemKNN_CFCBF_Hybrid:
+            if similarity_type_list is None:
+                similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
 
-#         if recommender_class in [ItemKNN_CFCBF_Hybrid_Recommender, UserKNN_CFCBF_Hybrid_Recommender]:
-#             if similarity_type_list is None:
-#                 similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
+            hyperparameters_range_dictionary = {}
 
-#             hyperparameters_range_dictionary = {}
+            if recommender_class is ItemKNN_CFCBF_Hybrid:
+                hyperparameters_range_dictionary['ICM_weight'] = Real(low = 1e-2, high = 1e2, prior = 'log-uniform')
 
-#             if recommender_class is ItemKNN_CFCBF_Hybrid_Recommender:
-#                 hyperparameters_range_dictionary['ICM_weight'] = Real(low = 1e-2, high = 1e2, prior = 'log-uniform')
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
 
-#             elif recommender_class is UserKNN_CFCBF_Hybrid_Recommender:
-#                 hyperparameters_range_dictionary['UCM_weight'] = Real(low = 1e-2, high = 1e2, prior = 'log-uniform')
+            if URM_train_last_test is not None:
+                recommender_input_args_last_test = recommender_input_args.copy()
+                recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
+            else:
+                recommender_input_args_last_test = None
 
+            run_KNNCFRecommender_on_similarity_type_partial = partial(
+                run_KNNRecommender_on_similarity_type,
+                hyperparameter_search_space = hyperparameters_range_dictionary,
+                recommender_input_args = recommender_input_args,
+                hyperparameterSearch = hyperparameterSearch,
+                resume_from_saved = resume_from_saved,
+                save_model = save_model,
+                evaluate_on_test = evaluate_on_test,
+                max_total_time = max_total_time,
+                n_cases = n_cases,
+                n_random_starts = n_random_starts,
+                output_folder_path = output_folder_path,
+                output_file_name_root = output_file_name_root,
+                metric_to_optimize = metric_to_optimize,
+                cutoff_to_optimize = cutoff_to_optimize,
+                allow_weighting = allow_weighting,
+                recommender_input_args_last_test = recommender_input_args_last_test)
 
+            if parallelizeKNN:
+                pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+                resultList = pool.map(run_KNNCFRecommender_on_similarity_type_partial, similarity_type_list)
 
+                pool.close()
+                pool.join()
 
-#             recommender_input_args = SearchInputRecommenderArgs(
-#                 CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
-#                 CONSTRUCTOR_KEYWORD_ARGS = {},
-#                 FIT_POSITIONAL_ARGS = [],
-#                 FIT_KEYWORD_ARGS = {}
-#             )
+            else:
+                for similarity_type in similarity_type_list:
+                    run_KNNCFRecommender_on_similarity_type_partial(similarity_type)
 
-
-#             if URM_train_last_test is not None:
-#                 recommender_input_args_last_test = recommender_input_args.copy()
-#                 recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
-#             else:
-#                 recommender_input_args_last_test = None
-
-
-#             run_KNNCFRecommender_on_similarity_type_partial = partial(run_KNNRecommender_on_similarity_type,
-#                                                            hyperparameter_search_space = hyperparameters_range_dictionary,
-#                                                            recommender_input_args = recommender_input_args,
-#                                                            hyperparameterSearch = hyperparameterSearch,
-#                                                            resume_from_saved = resume_from_saved,
-#                                                            save_model = save_model,
-#                                                            evaluate_on_test = evaluate_on_test,
-#                                                            max_total_time = max_total_time,
-#                                                            n_cases = n_cases,
-#                                                            n_random_starts = n_random_starts,
-#                                                            output_folder_path = output_folder_path,
-#                                                            output_file_name_root = output_file_name_root,
-#                                                            metric_to_optimize = metric_to_optimize,
-#                                                            cutoff_to_optimize = cutoff_to_optimize,
-#                                                            allow_weighting = allow_weighting,
-#                                                            recommender_input_args_last_test = recommender_input_args_last_test)
-
-
-
-#             if parallelizeKNN:
-#                 pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-#                 resultList = pool.map(run_KNNCFRecommender_on_similarity_type_partial, similarity_type_list)
-
-#                 pool.close()
-#                 pool.join()
-
-#             else:
-
-#                 for similarity_type in similarity_type_list:
-#                     run_KNNCFRecommender_on_similarity_type_partial(similarity_type)
-
-
-#             return
-
+            return
 
 #         elif recommender_class in [LightFMItemHybridRecommender, LightFMUserHybridRecommender]:
 #                 hyperparameters_range_dictionary = {
@@ -310,13 +295,13 @@ def runHyperparameterSearch_FeatureWeighting(
 #             cutoff_to_optimize = cutoff_to_optimize,
 #             recommender_input_args_last_test = recommender_input_args_last_test)
 
-#     except Exception as e:
-#         print('On recommender {} Exception {}'.format(recommender_class, str(e)))
-#         traceback.print_exc()
+    except Exception as e:
+        print('On recommender {} Exception {}'.format(recommender_class, str(e)))
+        traceback.print_exc()
 
-#         error_file = open(output_folder_path + 'ErrorLog.txt', 'a')
-#         error_file.write('On recommender {} Exception {}\n'.format(recommender_class, str(e)))
-#         error_file.close()
+        error_file = open(output_folder_path + 'ErrorLog.txt', 'a')
+        error_file.write('On recommender {} Exception {}\n'.format(recommender_class, str(e)))
+        error_file.close()
 
 
 def run_KNNRecommender_on_similarity_type(
@@ -675,10 +660,15 @@ def runHyperparameterSearch_Collaborative(
             )
 
         if recommender_class is EASE_R:
+            # This are the hyperparameters that perform better for this dataset
+            # With topK:Integer(5, 3000) tends to perform worse
+            # With normalize_matrix:Categorical([True, False]) tends to perform worse
+            # Best results are obtained with l2_norm between 2700 and 3600
+
             hyperparameters_range_dictionary = {
-                'topK': Categorical([None]), #Integer(5, 3000),
-                'l2_norm': Real(low = 1e0, high = 1e7, prior = 'log-uniform'),
-                'normalize_matrix': Categorical([False]), # With normalize_matrix:True tends to perform worse
+                'topK': Categorical([None]),
+                'l2_norm': Real(low=2700, high=3600, prior='log-uniform'),
+                'normalize_matrix': Categorical([False]),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(

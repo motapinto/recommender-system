@@ -3,10 +3,10 @@ import numpy as np
 from tqdm import tqdm
 from numpy import linalg as LA
 from Recommenders.Base.Base import Base
+from Recommenders.Base.TopPop import TopPop
 from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
 from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
 from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
-from Recommenders.CB.KNN.UserKNNCBF import UserKNNCBF
 
 class Hybrid(Base):
   RECOMMENDER_NAME = 'Hybrid'
@@ -14,20 +14,17 @@ class Hybrid(Base):
     super(Hybrid, self).__init__(URM_train)
     
     self.ICM = ICM
+
+    self.TopPop = TopPop(self.URM_train)
     self.ItemCF = ItemKNNCF(self.URM_train)
     self.UserCF = UserKNNCF(self.URM_train)
     # self.ItemCBF = ItemKNNCBF(self.URM_train, self.ICM)
-    # self.UserCBF = UserKNNCBF(self.URM_train, self.ICM)
 
     self.num_train_items = URM_train.shape[1]
 
   def fit(self):
-    # ICM = similaripy.normalization.bm25plus(self.ICM.copy())
-    # URM_aug = sps.vstack([self.URM_train, ICM.T])
-    # URM_aug2 = sps.vstack([self.URM_train, self.ICM.T])
-    # URM_aug2 = similaripy.normalization.bm25plus(URM_aug2)
-
     # Fit the recommenders
+    self.TopPop.fit()
     self.ItemCF.fit()
     self.UserCF.fit()
     # self.ItemCBF.fit()
@@ -38,7 +35,16 @@ class Hybrid(Base):
     
     for i in tqdm(range(len(user_id_array))):
       interactions = len(self.URM_train[user_id_array[i],:].indices)
-      if interactions > 0:
+      if interactions < 10: 
+        w1 = self.TopPop._compute_item_score(user_id_array[i], items_to_compute)
+        w2 = self.TopPop._compute_item_score(user_id_array[i], items_to_compute)
+        w1 /= LA.norm(w1, 2)
+        w2 /= LA.norm(w2, 2) 
+
+        w = w1 + w2
+        item_weights[i,:] = w
+
+      else:
         w1 = self.ItemCF._compute_item_score(user_id_array[i], items_to_compute) 
         w1 /= LA.norm(w1, 2)
 
@@ -55,4 +61,6 @@ class Hybrid(Base):
         item_weights[i,:] = w
 
     return item_weights
+
+
 

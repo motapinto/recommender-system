@@ -7,38 +7,46 @@ from scipy import sparse as sps
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
 class Dataset(object):
-    def __init__(self, path='./Data', validation_percentage=0.1, test_percentage=0.1):
-        self.seed = 9999
+    def __init__(self, path='./Data', validation_percentage=0, test_percentage=0.2, k=0, seed=9999):
+        self.seed = seed
 
         # Read and process targets
         targets = self.read_targets_csv(path)
         self.targets = np.unique(targets['user_id'])
         
         # Read and process URM (Note: no need to create new mapping, since all item identifiers are present in the URM)
+        # URM stacking not improving results ...
         URM = self.read_URM_csv(path)
         unique_users = URM['user'].unique()
         self.num_users = len(unique_users)
         unique_items = URM['item'].unique()
         self.num_items = len(unique_items)
 
-        # AUX
-        URM = self.URM_to_csr(URM)
-        self.URM_train, self.URM_test = self.train_test_holdout_adjusted(URM, 0.9)
-        self.URM_train_2, self.URM_test_2 = self.train_test_holdout_adjusted_col(URM, 0.9)
+        if k > 0: 
+            self.cross_val = True
+            self.k =k
+            self.URM_trains, self.URM_tests = self.get_random_kfolds(URM, k, test_percentage)
+        else: 
+            self.cross_val = False
+            self.URM_train, self.URM_val, self.URM_test, self.URM_train_val = self.get_split(
+                URM, validation_percentage, test_percentage, seed=self.seed)
 
         # Read and process ICM's
-        ICM = self.read_ICM_csv_csv(path)
+        self.ICM_csv = self.read_ICM_csv(path)
+        self.ICM_csv['event_ICM'] = self.cluster_by_episodes(self.ICM_csv['event_ICM'])
+
         self.channel_ICM = sps.coo_matrix(
-            (ICM['channel_ICM']['data'], (ICM['channel_ICM']['item'], ICM['channel_ICM']['channel']))).tocsr()
+            (self.ICM_csv['channel_ICM']['data'], (self.ICM_csv['channel_ICM']['item'], self.ICM_csv['channel_ICM']['channel']))).tocsr()
         self.event_ICM = sps.coo_matrix(
-            (ICM['event_ICM']['data'], (ICM['event_ICM']['item'], ICM['event_ICM']['episode']))).tocsr()
+            (self.ICM_csv['event_ICM']['data'], (self.ICM_csv['event_ICM']['item'], self.ICM_csv['event_ICM']['episodes']))).tocsr()
         self.genre_ICM = sps.coo_matrix(
-            (ICM['genre_ICM']['data'], (ICM['genre_ICM']['item'], ICM['genre_ICM']['genre']))).tocsr()
+            (self.ICM_csv['genre_ICM']['data'], (self.ICM_csv['genre_ICM']['item'], self.ICM_csv['genre_ICM']['genre']))).tocsr()
         self.subgenre_ICM = sps.coo_matrix(
-            (ICM['subgenre_ICM']['data'], (ICM['subgenre_ICM']['item'], ICM['subgenre_ICM']['subgenre']))).tocsr()
+            (self.ICM_csv['subgenre_ICM']['data'], (self.ICM_csv['subgenre_ICM']['item'], self.ICM_csv['subgenre_ICM']['subgenre']))).tocsr()
         
-        self.ICM = sps.hstack((self.channel_ICM, self.genre_ICM)).tocsr() # self.subgenre_ICM, self.event_ICM
+        self.ICM = self.event_ICM
     
+    # URM
     def read_URM_csv(self, path):
         URM = pd.read_csv(os.path.join(path, 'data_train.csv'),
             sep=',',
@@ -56,54 +64,60 @@ class Dataset(object):
         URM = sps.coo_matrix((interaction_list, (user_list, item_list_urm)), dtype=np.float64)
         return URM.tocsr()
     
-    def get_split(self, data, validation_percentage=0.1, test_percentage=0.1):
-        seed = 9999
-        URM_train, URM_val, URM_test = None, None, None
-
-        (user_train, user_test,
-        item_train, item_test,
-        rating_train, rating_test) = train_test_split(
-            data['user'],
-            data['item'],
-            data['data'],
-            test_size=test_percentage,
+    def get_df_split(self, col1, col2, col3, split=0.2, seed=None):
+        (col1_v1, col1_v2, col2_v1, col2_v2, col3_v1, col3_v2) = train_test_split(
+            col1, col2, col3,
+            test_size=split,
             random_state=seed
         )
 
-        if validation_percentage > 0:
-            self.URM_train_val = sps.coo_matrix(
-                (rating_train, (user_train, item_train)), 
-                shape=(self.num_users, self.num_items)
-            )
+        return (col1_v1, col1_v2, col2_v1, col2_v2, col3_v1, col3_v2)
 
-            (user_train, user_val,
-            item_train, item_val,
-            rating_train, rating_val) = train_test_split(
-                user_train,
-                item_train,
-                rating_train,
-                test_size=validation_percentage,
-                shuffle=True,
-                random_state=seed
-            )
-
-            URM_val = sps.coo_matrix(
-                (rating_val, (user_val, item_val)), 
-                shape=(self.num_users, self.num_items)
-            ).tocsr()
-
-        URM_train = sps.coo_matrix(
-            (rating_train, (user_train, item_train)), 
+    def get_csr_from_df(self, col1, col2, col3):
+        return sps.coo_matrix(
+            (col3, (col1, col2)), 
             shape=(self.num_users, self.num_items)
         ).tocsr()
-            
-        URM_test = sps.coo_matrix(
-            (rating_test, (user_test, item_test)), 
-            shape=(self.num_users, self.num_items)
-        ).tocsr()
+    
+    def get_split(self, data, validation_percentage=0, test_percentage=0.2, seed=None):
+        URM_train, URM_val, URM_test, URM_train_val = None, None, None, None
 
-        return URM_train, URM_val, URM_test
+        user_train = data['user']
+        item_train = data['item']
+        rating_train = data['data']
 
+        if test_percentage > 0: 
+            (user_train, user_test,
+            item_train, item_test,
+            rating_train, rating_test) = self.get_df_split(
+                data['user'], data['item'], data['data'], split=test_percentage, seed=seed)
+
+            if validation_percentage > 0:
+                URM_train_val = self.get_csr_from_df(user_train, item_train, rating_train)
+
+                (user_train, user_val,
+                item_train, item_val,
+                rating_train, rating_val) = self.get_df_split(
+                    user_train, item_train, rating_train, split=validation_percentage, seed=seed)   
+
+                URM_val = self.get_csr_from_df(user_val, item_val, rating_val)
+            URM_test = self.get_csr_from_df(user_test, item_test, rating_test)
+        URM_train = self.get_csr_from_df(user_train, item_train, rating_train)
+
+        return URM_train, URM_val, URM_test, URM_train_val
+
+    def get_random_kfolds(self, URM, k, test_percentage):
+        URM_trains, URM_tests = [], []
+        for _ in range(k):
+            self.seed = np.random.randint(0, 10000)
+            URM_train, _, URM_test, _ = self.get_split(URM, test_percentage=test_percentage)
+            URM_trains.append(URM_train)
+            URM_tests.append(URM_test)
+
+        self.seed = 9999
+        return URM_trains, URM_tests
+    
+    # ICM
     def read_ICM_csv(self, path):
         channel_ICM = pd.read_csv(
             os.path.join(path, 'data_ICM_channel.csv'),
@@ -118,9 +132,6 @@ class Dataset(object):
             names=['item', 'episode', 'data'],
             header=0,
             dtype={'item': np.int32, 'col': np.int32, 'data': np.float})
-        # print(event_ICM.head())
-        # event_ICM = event_ICM.groupby('item').count()
-        # print(event_ICM.head())
 
         genre_ICM = pd.read_csv(
             os.path.join(path, 'data_ICM_genre.csv'),
@@ -130,7 +141,7 @@ class Dataset(object):
             dtype={'item': np.int32, 'col': np.int32, 'data': np.float})
 
         subgenre_ICM = pd.read_csv(
-            os.path.join(path, 'data_ICM_genre.csv'),
+            os.path.join(path, 'data_ICM_subgenre.csv'),
             sep=',',
             names=['item', 'subgenre', 'data'],
             header=0,
@@ -145,6 +156,41 @@ class Dataset(object):
 
         return ICM
 
+    def cluster_by_episodes(self, df):
+        def _make_cluster(x):
+            clusters=[3, 10, 30, 100]
+            for i, j in enumerate (clusters):
+                if x<j: return i
+            return len(clusters)
+        
+        c = df.columns
+        df = df.value_counts(subset=c[0]).to_frame('episodes').reset_index()
+        df['episodes'] = df['episodes'].apply(_make_cluster)
+        df['data'] = 1.
+        return df
+
+    def get_all_icm_combinations(self):
+        ICM_v01 = self.channel_ICM
+        ICM_v02 = self.event_ICM
+        ICM_v03 = self.genre_ICM
+        ICM_v04 = self.subgenre_ICM
+        
+        ICM_v11 = sps.hstack((self.channel_ICM, self.event_ICM)).tocsr()
+        ICM_v12 = sps.hstack((self.channel_ICM, self.genre_ICM)).tocsr()
+        ICM_v13 = sps.hstack((self.channel_ICM, self.subgenre_ICM)).tocsr()
+        ICM_v14 = sps.hstack((self.event_ICM, self.genre_ICM)).tocsr()
+        ICM_v15 = sps.hstack((self.event_ICM, self.subgenre_ICM)).tocsr()
+        ICM_v16 = sps.hstack((self.genre_ICM, self.subgenre_ICM)).tocsr()
+        
+        ICM_v21 = sps.hstack((self.channel_ICM, self.event_ICM, self.genre_ICM)).tocsr()
+        ICM_v22 = sps.hstack((self.channel_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
+        ICM_v23 = sps.hstack((self.channel_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
+        ICM_v24 = sps.hstack((self.event_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
+        ICM_v25 = sps.hstack((self.channel_ICM, self.genre_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
+
+        return ICM_v01, ICM_v02, ICM_v03, ICM_v04, ICM_v11, ICM_v12, ICM_v13, ICM_v14, ICM_v15, ICM_v16, ICM_v21, ICM_v22, ICM_v23, ICM_v24, ICM_v25
+
+    # Targets
     def read_targets_csv(self, path):
         targets = pd.read_csv(os.path.join(path, 'data_target_users_test.csv'),
             sep=',',
@@ -154,79 +200,4 @@ class Dataset(object):
         )
 
         return targets
-
-    def train_test_holdout_adjusted(self, URM_all, train_perc = 0.8):
-        URM_all = URM_all.tocoo()
-
-        temp_col_num = 0
-        train_mask = np.array([]).astype(bool)
-        prev_row = URM_all.row[0]
-
-        for k in tqdm(range(len(URM_all.row))):
-
-            if URM_all.row[k] == prev_row:
-                temp_col_num += 1
-            else:
-                if temp_col_num >= 10:
-                    temp_mask = np.random.choice([True, False], temp_col_num, p=[train_perc, 1 - train_perc])
-                else:
-                    temp_mask = np.repeat(True, temp_col_num)
-
-                train_mask = np.append(train_mask, temp_mask)
-                temp_col_num = 1
-
-            if k == len(URM_all.row)-1:
-                temp_mask = np.random.choice([True, False], temp_col_num, p=[train_perc, 1 - train_perc])
-                train_mask = np.append(train_mask, temp_mask)
-
-            prev_row = URM_all.row[k]
-
-
-        URM_train = sps.coo_matrix((URM_all.data[train_mask], (URM_all.row[train_mask], URM_all.col[train_mask])))
-        URM_train = URM_train.tocsr()
-
-        test_mask = np.logical_not(train_mask)
-
-        URM_test = sps.coo_matrix((URM_all.data[test_mask], (URM_all.row[test_mask], URM_all.col[test_mask])))
-        URM_test = URM_all.tocsr()
-
-        return URM_train, URM_test
-
-    def train_test_holdout_adjusted_col(self, URM_all, train_perc = 0.8):
-        URM_all = URM_all.T.tocoo()
-
-        temp_col_num = 0
-        train_mask = np.array([]).astype(bool)
-        prev_row = URM_all.row[0]
-
-        for k in tqdm(range(len(URM_all.row))):
-
-            if URM_all.row[k] == prev_row:
-                temp_col_num += 1
-            else:
-                if temp_col_num >= 10:
-                    temp_mask = np.random.choice([True, False], temp_col_num, p=[train_perc, 1 - train_perc])
-                else:
-                    temp_mask = np.repeat(True, temp_col_num)
-
-                train_mask = np.append(train_mask, temp_mask)
-                temp_col_num = 1
-
-            if k == len(URM_all.row)-1:
-                temp_mask = np.random.choice([True, False], temp_col_num, p=[train_perc, 1 - train_perc])
-                train_mask = np.append(train_mask, temp_mask)
-
-            prev_row = URM_all.row[k]
-
-
-        URM_train = sps.coo_matrix((URM_all.data[train_mask], (URM_all.row[train_mask], URM_all.col[train_mask])))
-        URM_train = URM_train.T.tocsc()
-
-        test_mask = np.logical_not(train_mask)
-
-        URM_test = sps.coo_matrix((URM_all.data[test_mask], (URM_all.row[test_mask], URM_all.col[test_mask])))
-        URM_test = URM_all.T.tocsc()
-
-        return URM_train, URM_test
-
         

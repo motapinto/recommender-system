@@ -10,11 +10,12 @@ from Recommenders.Base.BaseItemSimilarityMatrix import BaseItemSimilarityMatrix
 class EASE_R(BaseItemSimilarityMatrix):
     RECOMMENDER_NAME = 'EASE_R'
 
-    def __init__(self, URM_train, sparse_threshold_quota = None):
+    def __init__(self, URM_train, sparse_threshold_quota=None):
         super(EASE_R, self).__init__(URM_train)
         self.sparse_threshold_quota = sparse_threshold_quota
 
-    def fit(self, topK=895, l2_norm = 4085.0154, normalize_matrix = False, validation_every_n=None, verbose=True):
+    # l2_norm=2822.555177926504 is equally good
+    def fit(self, topK=None, l2_norm=3978.277751893026, normalize_matrix=False, validation_every_n=None, verbose=True):
         self.verbose = verbose
 
         start_time = time.time()

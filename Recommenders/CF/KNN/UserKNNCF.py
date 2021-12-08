@@ -10,10 +10,16 @@ class UserKNNCF(BaseUserSimilarityMatrix):
 
     def __init__(self, URM_train, verbose=True):
         super(UserKNNCF, self).__init__(URM_train, verbose=verbose)
-
-    def fit(self, topK=364, shrink=226, similarity='tanimoto', normalize=True, feature_weighting='none', URM_bias=True, **similarity_args):
+    
+    def fit(self, topK=565, shrink=0, similarity='tversky', normalize=True, feature_weighting='none', URM_bias=True, **similarity_args):
         self.topK = topK
         self.shrink = shrink
+
+        if(len(similarity_args) == 0):
+            similarity_args = {
+                'tversky_alpha': 2.0, 
+                'tversky_beta': 1.3485938404432127,
+            } 
 
         if feature_weighting not in self.FEATURE_WEIGHTING_VALUES:
             raise ValueError(f'Value for \'feature_weighting\' not recognized. Acceptable values are {self.FEATURE_WEIGHTING_VALUES}, provided was {feature_weighting}')
@@ -31,7 +37,7 @@ class UserKNNCF(BaseUserSimilarityMatrix):
             self.URM_train = TF_IDF(self.URM_train.T).T
             self.URM_train = check_matrix(self.URM_train, 'csr')
 
-        similarity = Compute_Similarity(self.URM_train.T, shrink=shrink, topK=topK, normalize=normalize, similarity = similarity, **similarity_args)
+        similarity = Compute_Similarity(self.URM_train.T, shrink=shrink, topK=topK, normalize=normalize, similarity=similarity, **similarity_args)
 
         self.W_sparse = similarity.compute_similarity()
         self.W_sparse = check_matrix(self.W_sparse, format='csr')

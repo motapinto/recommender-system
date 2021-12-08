@@ -14,18 +14,13 @@ from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
 
-from Recommenders.Hybrid.Hybrid import Hybrid
+from Recommenders.CF.KNN.EASE_R import EASE_R
 
 if __name__ == '__main__':
-    dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0.1)
-
-    recommender = Hybrid(dataset.URM_train, dataset.ICM['genre_ICM'])
+    dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0, seed=None)
+    
+    recommender = EASE_R(dataset.URM_train)
     recommender.fit()
-
-    # recommender.load_model(
-    #     os.path.join('Recommenders', 'tuner_results'+os.sep),
-    #     file_name=recommender.RECOMMENDER_NAME+'_best_model_last.zip'
-    # )
 
     submission = get_submission(dataset.targets, recommender)
     save_submission(submission)
