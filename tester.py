@@ -18,13 +18,14 @@ from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
 
-def evaluate_recommender(recommender_class, URM_train, ICM, URM_test):
-    if recommender_class == ItemKNN_CFCBF_Hybrid:
-        recommender = recommender_class(URM_train, ICM)
-    else:
-        recommender = recommender_class(URM_train)
-    
-    recommender.fit()
+def evaluate_recommender(recommender, URM_train, ICM, URM_test, has_fit_params=False):
+    if not has_fit_params:
+        if recommender == ItemKNN_CFCBF_Hybrid:
+            recommender = recommender(URM_train, ICM)
+        else:
+            recommender = recommender(URM_train)
+        
+        recommender.fit()
 
     start = time.time()
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
@@ -33,26 +34,55 @@ def evaluate_recommender(recommender_class, URM_train, ICM, URM_test):
 
     return result_df, end-start
 
-if __name__ == '__main__':
-    dataset = Dataset(path='./Data', k=5, validation_percentage=0, test_percentage=0.2)
-    test_models = [ItemKNN_CFCBF_Hybrid ]#, UserKNNCF, ItemKNNCF, EASE_R, RP3beta]
-
-    if dataset.cross_val:
-        avg_results = []
-        for model in test_models:
-            result_array = []
-            for i in trange(dataset.k):                
-                result_df, exec_time = evaluate_recommender(model, 
-                    dataset.URM_trains[i], dataset.ICM, dataset.URM_tests[i])
-                
-                result_array.append(result_df.loc[10]['MAP'])
-                print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
-                    result_df.loc[10]['MAP'], exec_time))
+def evaluate_models(k, URM_trains, ICM, URM_tests, test_models):
+    avg_results = []
+    for model in test_models:
+        result_array = []
+        for i in trange(k):                
+            result_df, exec_time = evaluate_recommender(model, 
+                URM_trains[i], ICM, URM_tests[i])
             
-            avg_results.append(average(result_array))
+            result_array.append(result_df.loc[10]['MAP'])
+            print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
+                result_df.loc[10]['MAP'], exec_time))
+        
+        avg_results.append(average(result_array))
 
-        for model_idx, map in enumerate(avg_results):
-            print(f'Recommender: {test_models[model_idx].RECOMMENDER_NAME} | MAP@10: {map}')
+    for model_idx, map in enumerate(avg_results):
+        print(f'Recommender: {test_models[model_idx].RECOMMENDER_NAME} | MAP@10: {map}')
+
+if __name__ == '__main__':
+    dataset = Dataset(path='./Data', k=0, validation_percentage=0, test_percentage=0.2)
+    
+    if dataset.cross_val:
+        test_models = [
+            ItemKNN_CFCBF_Hybrid,
+            UserKNNCF,
+            ItemKNNCF,
+            EASE_R,
+            RP3beta
+        ]
+
+        evaluate_models(dataset.k, dataset.URM_trains, dataset.ICM, dataset.URM_tests, test_models)
+    
+    else:
+        result_df, exec_time = evaluate_recommender(ItemKNNCF, 
+            dataset.URM_train, dataset.ICM, dataset.URM_test)
+        print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
+                result_df.loc[10]['MAP'], exec_time))
+        
+        recommender = ItemKNNCF(dataset.URM_train)
+        recommender.fit(similarity='euclidean')
+        result_df, exec_time = evaluate_recommender(recommender, 
+            dataset.URM_train, dataset.ICM, dataset.URM_test, has_fit_params=True)
+        print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
+                result_df.loc[10]['MAP'], exec_time))
+
+
+
+
+
+
             
     # if recommender_class == IALS or recommender_class == SLIM_BPR or recommender_class == SLIMElasticNet:
     #     earlystopping_keywargs = {
@@ -68,3 +98,8 @@ if __name__ == '__main__':
 
 
         
+# ItemKNN_CFCBF_Hybrid - MAP: 0.2345
+# UserKNNCF - MAP: 0.2318
+# ItemKNNCF - MAP: 0.2398
+# EASE_R - MAP: 0.2457
+# RP3beta - MAP: 0.2204
