@@ -9,7 +9,9 @@ from Utils.Evaluator import EvaluatorHoldout
 from Utils.methods.get_recommender_instance import get_recommender_inputs
 
 # Hyper-parameters
-from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Collaborative, runHyperparameterSearch_Hybrid
+from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Collaborative
+from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Hybrid
+from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Content
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 
@@ -24,7 +26,11 @@ from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet
 from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
-from Recommenders.CF.MatrixFactorization.LightFM import LightFMCF
+from Recommenders.CF.LightFM import LightFMCF
+from Recommenders.CF.MultVAE import MultVAE
+
+# CB
+from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
 
 # Hybrid 
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
@@ -54,7 +60,7 @@ def tune_cf(
         allow_dropout_MF=True,
         allow_bias_URM=True,
         resume_from_saved=False,
-        similarity_type_list=['asymmetric', 'tversky'], # only for ItemKNNCF, UserKNNCF
+        similarity_type_list=['asymmetric', 'tversky', 'euclidean'], # only for ItemKNNCF, UserKNNCF
         save_model='no',
         n_cases=n_cases,
         n_random_starts=int(n_cases*0.3))
@@ -81,6 +87,32 @@ def tune_hybrid(
         allow_weighting=True,
         resume_from_saved=False,
         similarity_type_list=['asymmetric', 'tversky'],
+        save_model='no',
+        n_cases=n_cases,
+        n_random_starts=int(n_cases*0.3))
+
+    run_search(run_hyperparameter_search_cf, cf_models)
+
+def tune_cbf(
+    URM_train, URM_train_val, ICM_object,
+    evaluator_validation, evaluator_test, 
+    cf_models, output_folder_path, n_cases=20
+): 
+    run_hyperparameter_search_cf = partial(runHyperparameterSearch_Content,
+        URM_train=URM_train,
+        URM_train_last_test=URM_train_val,
+        ICM_object=ICM_object, 
+        ICM_name='',
+        metric_to_optimize='MAP',
+        cutoff_to_optimize=10,
+        evaluator_validation=evaluator_validation,
+        evaluator_test=evaluator_test,
+        output_folder_path=output_folder_path,
+        parallelizeKNN=True,
+        allow_weighting=True,
+        allow_bias_ICM=True,
+        resume_from_saved=False,
+        similarity_type_list=['asymmetric', 'tversky'], # only for ItemKNNCF, UserKNNCF
         save_model='no',
         n_cases=n_cases,
         n_random_starts=int(n_cases*0.3))
@@ -126,26 +158,31 @@ if __name__ == '__main__':
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
 
-    cf_models = [
-        # ItemKNNCF,
-        # UserKNNCF,
-        # RP3beta,
-        # P3alpha,
-        EASE_R,
-        # SLIM_BPR,
-        # SLIMElasticNet,
-        # PureSVD,
-        # ScaledPureSVD, -> cannot be used in tune_all() -> lacks implementation (can be used in tune_one())
-        # PureSVDItem,
-        # IALS,
-        # LightFMCF,
-    ]
+    # cf_models = [
+    #     # ItemKNNCF,
+    #     # UserKNNCF,
+    #     # RP3beta,
+    #     # P3alpha,
+    #     # EASE_R,
+    #     # SLIM_BPR,
+    #     # SLIMElasticNet,
+    #     # PureSVD,
+    #     # ScaledPureSVD, -> cannot be used in tune_all() -> lacks implementation (can be used in tune_one())
+    #     # PureSVDItem,
+    #     # IALS,
+    #     # LightFMCF,
+    # ]
 
-    tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
-        evaluator_validation, evaluator_test, [ItemKNN_CFCBF_Hybrid], output_folder_path, n_cases=200)
+    # tune_cf(dataset.URM_train, dataset.URM_train_val, evaluator_validation, 
+    #     evaluator_test, cf_models, output_folder_path, n_cases=200)
 
-    tune_cf(dataset.URM_train, dataset.URM_train_val, evaluator_validation, 
-        evaluator_test, cf_models, output_folder_path, n_cases=200)
+    tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
+        evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
+
+    # hybrid_models = [ItemKNN_CFCBF_Hybrid]
+    # tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
+    #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=200)
+
     
     # hyperparameters = {
     #     'topK': Integer(low=1e2, high=2e3, prior='uniform', base=10),

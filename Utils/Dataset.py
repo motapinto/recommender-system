@@ -24,7 +24,7 @@ class Dataset(object):
 
         if k > 0: 
             self.cross_val = True
-            self.k =k
+            self.k = k
             self.URM_trains, self.URM_tests = self.get_random_kfolds(URM, k, test_percentage)
         else: 
             self.cross_val = False
@@ -32,19 +32,19 @@ class Dataset(object):
                 URM, validation_percentage, test_percentage, seed=self.seed)
 
         # Read and process ICM's
-        self.ICM_csv = self.read_ICM_csv(path)
-        self.ICM_csv['event_ICM'] = self.cluster_by_episodes(self.ICM_csv['event_ICM'])
+        ICM_csv = self.read_ICM_csv(path)
+        ICM_csv['event_ICM'] = self.cluster_by_episodes(ICM_csv['event_ICM'])
 
         self.channel_ICM = sps.coo_matrix(
-            (self.ICM_csv['channel_ICM']['data'], (self.ICM_csv['channel_ICM']['item'], self.ICM_csv['channel_ICM']['channel']))).tocsr()
+            (ICM_csv['channel_ICM']['data'], (ICM_csv['channel_ICM']['item'], ICM_csv['channel_ICM']['channel']))).tocsr()
         self.event_ICM = sps.coo_matrix(
-            (self.ICM_csv['event_ICM']['data'], (self.ICM_csv['event_ICM']['item'], self.ICM_csv['event_ICM']['episodes']))).tocsr()
+            (ICM_csv['event_ICM']['data'], (ICM_csv['event_ICM']['item'], ICM_csv['event_ICM']['episodes']))).tocsr()
         self.genre_ICM = sps.coo_matrix(
-            (self.ICM_csv['genre_ICM']['data'], (self.ICM_csv['genre_ICM']['item'], self.ICM_csv['genre_ICM']['genre']))).tocsr()
+            (ICM_csv['genre_ICM']['data'], (ICM_csv['genre_ICM']['item'], ICM_csv['genre_ICM']['genre']))).tocsr()
         self.subgenre_ICM = sps.coo_matrix(
-            (self.ICM_csv['subgenre_ICM']['data'], (self.ICM_csv['subgenre_ICM']['item'], self.ICM_csv['subgenre_ICM']['subgenre']))).tocsr()
+            (ICM_csv['subgenre_ICM']['data'], (ICM_csv['subgenre_ICM']['item'], ICM_csv['subgenre_ICM']['subgenre']))).tocsr()
         
-        self.ICM = self.event_ICM
+        self.ICM = self.get_icm_format_k(11)
     
     # URM
     def read_URM_csv(self, path):
@@ -117,6 +117,14 @@ class Dataset(object):
         self.seed = 9999
         return URM_trains, URM_tests
     
+    def stack_URM_ICM(self, URM_train, ICM):
+        stacked_URM = sps.vstack([URM_train, ICM.T])
+        stacked_URM = sps.csr_matrix(stacked_URM)
+
+        stacked_ICM = sps.csr_matrix(stacked_URM.T)
+
+        return stacked_URM, stacked_ICM
+    
     # ICM
     def read_ICM_csv(self, path):
         channel_ICM = pd.read_csv(
@@ -169,26 +177,25 @@ class Dataset(object):
         df['data'] = 1.
         return df
 
-    def get_all_icm_combinations(self):
-        ICM_v01 = self.channel_ICM
-        ICM_v02 = self.event_ICM
-        ICM_v03 = self.genre_ICM
-        ICM_v04 = self.subgenre_ICM
-        
-        ICM_v11 = sps.hstack((self.channel_ICM, self.event_ICM)).tocsr()
-        ICM_v12 = sps.hstack((self.channel_ICM, self.genre_ICM)).tocsr()
-        ICM_v13 = sps.hstack((self.channel_ICM, self.subgenre_ICM)).tocsr()
-        ICM_v14 = sps.hstack((self.event_ICM, self.genre_ICM)).tocsr()
-        ICM_v15 = sps.hstack((self.event_ICM, self.subgenre_ICM)).tocsr()
-        ICM_v16 = sps.hstack((self.genre_ICM, self.subgenre_ICM)).tocsr()
-        
-        ICM_v21 = sps.hstack((self.channel_ICM, self.event_ICM, self.genre_ICM)).tocsr()
-        ICM_v22 = sps.hstack((self.channel_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
-        ICM_v23 = sps.hstack((self.channel_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
-        ICM_v24 = sps.hstack((self.event_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
-        ICM_v25 = sps.hstack((self.channel_ICM, self.genre_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
+    def get_icm_format_k(self, k):
+        if k == 1: return self.channel_ICM
+        if k == 2: return self.event_ICM
+        if k == 3: return self.genre_ICM
+        if k == 4: return self.subgenre_ICM
 
-        return ICM_v01, ICM_v02, ICM_v03, ICM_v04, ICM_v11, ICM_v12, ICM_v13, ICM_v14, ICM_v15, ICM_v16, ICM_v21, ICM_v22, ICM_v23, ICM_v24, ICM_v25
+        if k == 5: return sps.hstack((self.channel_ICM, self.event_ICM)).tocsr()
+        if k == 6: return sps.hstack((self.channel_ICM, self.genre_ICM)).tocsr()
+        if k == 7: return sps.hstack((self.channel_ICM, self.subgenre_ICM)).tocsr()
+        if k == 8: return sps.hstack((self.event_ICM, self.genre_ICM)).tocsr()
+        if k == 9: return sps.hstack((self.event_ICM, self.subgenre_ICM)).tocsr()
+        if k == 10: return sps.hstack((self.genre_ICM, self.subgenre_ICM)).tocsr()
+
+        if k == 11: return sps.hstack((self.channel_ICM, self.event_ICM, self.genre_ICM)).tocsr()
+        if k == 12: return sps.hstack((self.channel_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
+        if k == 13: return sps.hstack((self.channel_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
+        if k == 14: return sps.hstack((self.event_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
+        
+        if k == 15: return sps.hstack((self.channel_ICM, self.genre_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
 
     # Targets
     def read_targets_csv(self, path):

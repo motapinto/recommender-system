@@ -160,56 +160,9 @@ class HIT_RATE(_Metrics_Object):
         self.cumulative_HR += other_metric_object.cumulative_HR
         self.n_users += other_metric_object.n_users
 
-#
-#
-# class AverageHitsPerUser(_Metrics_Object):
-#     '''
-#     The average number of correct recommendations per user
-#
-#     '''
-#
-#     def __init__(self):
-#         super(AverageHitsPerUser, self).__init__()
-#         self.cumulative_hits = 0.0
-#         self.n_users = 0
-#
-#     def add_recommendations(self, is_relevant):
-#         self.cumulative_hits += np.sum(is_relevant)
-#         self.n_users += 1
-#
-#     def get_metric_value(self):
-#         return self.cumulative_hits/self.n_users
-#
-#     def merge_with_other(self, other_metric_object):
-#         assert other_metric_object is AverageHitsPerUser, 'AverageHitsPerUser: attempting to merge with a metric object of different type'
-#
-#         self.cumulative_hits += other_metric_object.cumulative_HR
-#         self.n_users += other_metric_object.n_users
-
-# def roc_auc(is_relevant):
-#
-#     ranks = np.arange(len(is_relevant))
-#     pos_ranks = ranks[is_relevant]
-#     neg_ranks = ranks[~is_relevant]
-#     auc_score = 0.0
-#
-#     if len(neg_ranks) == 0:
-#         return 1.0
-#
-#     if len(pos_ranks) > 0:
-#         for pos_pred in pos_ranks:
-#             auc_score += np.sum(pos_pred < neg_ranks, dtype=np.float64)
-#         auc_score /= (pos_ranks.shape[0] * neg_ranks.shape[0])
-#
-#     assert 0 <= auc_score <= 1, auc_score
-#     return auc_score
-
 def arhr_all_hits(is_relevant):
     # average reciprocal hit-rank (ARHR) of all relevant items
     # As opposed to MRR, ARHR takes into account all relevant items and not just the first
-    # pag 17
-    # http://glaros.dtc.umn.edu/gkhome/fetch/papers/itemrsTOIS04.pdf
-    # https://emunix.emich.edu/~sverdlik/COSC562/ItemBasedTopTen.pdf
 
     p_reciprocal = 1/np.arange(1,len(is_relevant)+1, 1.0, dtype=np.float64)
     arhr_score = is_relevant.dot(p_reciprocal)
@@ -255,8 +208,7 @@ def ndcg(ranked_list, pos_items, relevance=None, at=None):
     # DCG uses the relevance of the recommended items
     rank_dcg = dcg(rank_scores)
 
-    if rank_dcg == 0.0:
-        return 0.0
+    if rank_dcg == 0.0: return 0.0
 
     # IDCG has all relevances to 1 (or the values provided), up to the number of items in the test set that can fit in the list length
     ideal_dcg = dcg(np.sort(relevance)[::-1][:at])
@@ -269,67 +221,12 @@ def ndcg(ranked_list, pos_items, relevance=None, at=None):
     return ndcg_
 
 def dcg(scores):
-    return np.sum(np.divide(np.power(2, scores) - 1, np.log2(np.arange(scores.shape[0], dtype=np.float64) + 2)),
-                  dtype=np.float64)
-
-####################################################################################################################
-###############                 ERROR METRICS
-####################################################################################################################
-#
-# class RMSE(_Metrics_Object):
-#     '''
-#     Root Mean Squared Error
-#
-#     '''
-#
-#     def __init__(self, URM_all):
-#         super(RMSE, self).__init__()
-#
-#         self.cumulative_squared_error = 0.0
-#
-#         self._min_rating = np.min(URM_all.data)
-#         self._max_rating = np.max(URM_all.data)
-#
-#         self._n_predictions = 0
-#
-#     def add_recommendations(self, all_items_predicted_ratings, relevant_items, relevant_items_rating):
-#
-#         assert len(relevant_items) == len(relevant_items_rating), \
-#             'RMSE: the list of relevant items and of the corresponding rating do not have the same length'
-#
-#         assert np.all(relevant_items_rating >= self._min_rating) and np.all(relevant_items_rating <= self._max_rating), \
-#             'RMSE: relevant_items_rating contains values outside the clip range inferred from URM_all'
-#
-#         # Important, some items will have -np.inf score and are treated as if they have the minimal rating possible
-#         all_items_clipped_ratings = np.clip(all_items_predicted_ratings,
-#                                             a_min = self._min_rating,
-#                                             a_max = self._max_rating)
-#
-#         relevant_items_error = (all_items_clipped_ratings[relevant_items] - relevant_items_rating)**2
-#
-#         self.cumulative_squared_error += np.sum(relevant_items_error)
-#         self._n_predictions += len(relevant_items)
-#
-#     def get_metric_value(self):
-#
-#         if self._n_predictions == 0:
-#             return np.nan
-#
-#         MSE = self.cumulative_squared_error/self._n_predictions
-#         return np.sqrt(MSE)
-#
-#     def merge_with_other(self, other_metric_object):
-#         assert other_metric_object is RMSE, 'RMSE: attempting to merge with a metric object of different type'
-#
-#         self.cumulative_squared_error += other_metric_object.cumulative_squared_error
-#         self._n_predictions += other_metric_object._n_predictions
-#
-#
-
-####################################################################################################################
-###############                 BEYOND-ACCURACY METRICS
-####################################################################################################################
-
+    return np.sum(
+        np.divide(
+            np.power(2, scores)-1, 
+            np.log2(np.arange(scores.shape[0], dtype=np.float64) + 2)),
+        dtype=np.float64
+    )
 
 class _Global_Item_Distribution_Counter(_Metrics_Object):
     '''
@@ -342,13 +239,11 @@ class _Global_Item_Distribution_Counter(_Metrics_Object):
         self.recommended_counter = np.zeros(n_items, dtype=np.float)
         self.ignore_items = ignore_items.astype(np.int).copy()
 
-
     def add_recommendations(self, recommended_items_ids):
         if len(recommended_items_ids) > 0:
             self.recommended_counter[recommended_items_ids] += 1
 
     def _get_recommended_items_counter(self):
-
         recommended_counter = self.recommended_counter.copy()
 
         recommended_counter_mask = np.ones_like(recommended_counter, dtype = np.bool)
@@ -358,7 +253,6 @@ class _Global_Item_Distribution_Counter(_Metrics_Object):
 
         return recommended_counter
 
-
     def merge_with_other(self, other_metric_object):
         assert isinstance(other_metric_object, self.__class__), '{}: attempting to merge with a metric object of different type'.format(self.__class__)
 
@@ -366,9 +260,6 @@ class _Global_Item_Distribution_Counter(_Metrics_Object):
 
     def get_metric_value(self):
         raise NotImplementedError()
-
-
-
 
 class Coverage_Item(_Global_Item_Distribution_Counter):
     '''
@@ -380,13 +271,8 @@ class Coverage_Item(_Global_Item_Distribution_Counter):
         super(Coverage_Item, self).__init__(n_items, ignore_items)
 
     def get_metric_value(self):
-
         recommended_mask = self._get_recommended_items_counter() > 0
-
         return recommended_mask.sum()/len(recommended_mask)
-
-
-
 
 class Coverage_Item_Correct(_Global_Item_Distribution_Counter):
     '''
@@ -401,13 +287,8 @@ class Coverage_Item_Correct(_Global_Item_Distribution_Counter):
         super(Coverage_Item_Correct, self).add_recommendations(np.array(recommended_items_ids)[is_relevant])
 
     def get_metric_value(self):
-
         recommended_mask = self._get_recommended_items_counter() > 0
-
         return recommended_mask.sum()/len(recommended_mask)
-
-
-
 
 class Items_In_GT(_Metrics_Object):
     '''
@@ -432,8 +313,6 @@ class Items_In_GT(_Metrics_Object):
 
         return in_GT_mask.sum()/(len(in_GT_mask) - len(self.ignore_items))
 
-
-
 class Users_In_GT(_Metrics_Object):
     '''
     Users_In_GT represents the percentage of the overall users that have at least an interaction in the GT
@@ -451,14 +330,10 @@ class Users_In_GT(_Metrics_Object):
         pass
 
     def get_metric_value(self):
-
         in_GT_mask = self.interaction_in_GT_counter > 0
         in_GT_mask[self.ignore_users] = False
 
         return in_GT_mask.sum()/(len(in_GT_mask) - len(self.ignore_users))
-
-
-
 
 class Coverage_User(_Metrics_Object):
     '''
@@ -847,7 +722,6 @@ class Diversity_similarity(_Metrics_Object):
         self.diversity = self.diversity + other_metric_object.diversity
         self.n_evaluated_users = self.n_evaluated_users + other_metric_object.n_evaluated_users
 
-
 class Diversity_MeanInterList(_Metrics_Object):
     '''
     MeanInterList diversity measures the uniqueness of different users' recommendation lists.
@@ -962,16 +836,11 @@ def pp_metrics(metric_names, metric_values, metric_at):
     assert len(metric_names) == len(metric_values)
     if isinstance(metric_at, int):
         metric_at = [metric_at] * len(metric_values)
-    return ' '.join(['{}: {:.4f}'.format(mname, mvalue) if mcutoff is None or mcutoff == 0 else
-                     '{}@{}: {:.4f}'.format(mname, mcutoff, mvalue)
-                     for mname, mcutoff, mvalue in zip(metric_names, metric_at, metric_values)])
+    return ' '.join(
+        ['{}: {:.4f}'.format(mname, mvalue) if mcutoff is None or mcutoff == 0 else
+        '{}@{}: {:.4f}'.format(mname, mcutoff, mvalue)
+        for mname, mcutoff, mvalue in zip(metric_names, metric_at, metric_values)])
 
-# class TestAUC(unittest.TestCase):
-#     def runTest(self):
-#         pos_items = np.asarray([2, 4])
-#         ranked_list = np.asarray([1, 2, 3, 4, 5])
-#         self.assertTrue(np.allclose(roc_auc(ranked_list, pos_items),
-#                                     (2. / 3 + 1. / 3) / 2))
 
 class TestRecall(unittest.TestCase):
     def runTest(self):

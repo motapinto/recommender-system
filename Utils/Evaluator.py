@@ -22,7 +22,6 @@ class EvaluatorMetrics(Enum):
     F1 = 'F1'
     HIT_RATE = 'HIT_RATE'
     ARHR = 'ARHR_ALL_HITS'
-    # RMSE = 'RMSE'
     NOVELTY = 'NOVELTY'
     AVERAGE_POPULARITY = 'AVERAGE_POPULARITY'
     DIVERSITY_SIMILARITY = 'DIVERSITY_SIMILARITY'
@@ -43,7 +42,6 @@ class EvaluatorMetrics(Enum):
 
 def _create_empty_metrics_dict(cutoff_list, n_items, n_users, URM_train, URM_test, ignore_items, ignore_users, diversity_similarity_object):
     empty_dict = {}
-    # global_RMSE_object = RMSE(URM_train + URM_test)
 
     for cutoff in cutoff_list:
         cutoff_dict = {}
@@ -285,14 +283,6 @@ class Evaluator(object):
         for batch_user_index in range(len(recommended_items_batch_list)):
             test_user = test_user_batch_array[batch_user_index]
             relevant_items = self.get_user_relevant_items(test_user)
-
-            # Add the RMSE to the global object, no need to loop through the various cutoffs
-            # This repository is not designed to ensure proper RMSE optimization
-            # relevant_items_rating = self.get_user_test_ratings(test_user)
-            #
-            # all_items_predicted_ratings = scores_batch[batch_user_index]
-            # global_RMSE_object = results_dict[self.cutoff_list[0]][EvaluatorMetrics.RMSE.value]
-            # global_RMSE_object.add_recommendations(all_items_predicted_ratings, relevant_items, relevant_items_rating)
 
             # Being the URM CSR, the indices are the non-zero column indexes
             recommended_items = recommended_items_batch_list[batch_user_index]

@@ -19,6 +19,8 @@ from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
 
 def evaluate_recommender(recommender, URM_train, ICM, URM_test, has_fit_params=False):
+    start = time.time()
+
     if not has_fit_params:
         if recommender == ItemKNN_CFCBF_Hybrid:
             recommender = recommender(URM_train, ICM)
@@ -27,12 +29,11 @@ def evaluate_recommender(recommender, URM_train, ICM, URM_test, has_fit_params=F
         
         recommender.fit()
 
-    start = time.time()
     evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
     result_df, _ = evaluator_test.evaluateRecommender(recommender)
     end = time.time()
 
-    return result_df, end-start
+    return result_df, int(end-start)
 
 def evaluate_models(k, URM_trains, ICM, URM_tests, test_models):
     avg_results = []
@@ -64,24 +65,22 @@ if __name__ == '__main__':
         ]
 
         evaluate_models(dataset.k, dataset.URM_trains, dataset.ICM, dataset.URM_tests, test_models)
-    
+
     else:
+        ICM = dataset.get_icm_format_k(11)
+        stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, ICM)
+
         result_df, exec_time = evaluate_recommender(ItemKNNCF, 
-            dataset.URM_train, dataset.ICM, dataset.URM_test)
-        print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
-                result_df.loc[10]['MAP'], exec_time))
-        
-        recommender = ItemKNNCF(dataset.URM_train)
-        recommender.fit(similarity='euclidean')
-        result_df, exec_time = evaluate_recommender(recommender, 
-            dataset.URM_train, dataset.ICM, dataset.URM_test, has_fit_params=True)
-        print('\nRecommender performance: MAP = {:.4f}. Time: {} s.\n'.format(
-                result_df.loc[10]['MAP'], exec_time))
+            stacked_URM, stacked_ICM, dataset.URM_test)
+        map = result_df.loc[10]['MAP']
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
 
+        ICM = dataset.get_icm_format_k(1)
 
-
-
-
+        result_df, exec_time = evaluate_recommender(ItemKNNCF, 
+            dataset.URM_train, ICM, dataset.URM_test)
+        map = result_df.loc[10]['MAP']
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time}s.\n')
 
             
     # if recommender_class == IALS or recommender_class == SLIM_BPR or recommender_class == SLIMElasticNet:

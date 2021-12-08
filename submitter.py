@@ -18,8 +18,10 @@ from Recommenders.CF.KNN.EASE_R import EASE_R
 
 if __name__ == '__main__':
     dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0, seed=None)
+    ICM = dataset.get_icm_format_k(11)
+    stacked_URM, _ = dataset.stack_URM_ICM(dataset.URM_train, ICM)
     
-    recommender = EASE_R(dataset.URM_train)
+    recommender = EASE_R(stacked_URM)
     recommender.fit()
 
     submission = get_submission(dataset.targets, recommender)
