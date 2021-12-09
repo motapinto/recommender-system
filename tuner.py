@@ -21,8 +21,8 @@ from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
 from Recommenders.CF.KNN.RP3beta import RP3beta
 from Recommenders.CF.KNN.P3alpha import P3alpha
 from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.KNN.MachineLearning.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet
+from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
+from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet
 from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
@@ -151,6 +151,9 @@ def tune_one(
 if __name__ == '__main__':
     dataset = Dataset(path='./Data', validation_percentage=0.1, test_percentage=0.2)
 
+    ICM = dataset.get_icm_format_k(11)
+    stacked_URM, _ = dataset.stack_URM_ICM(dataset.URM_train, ICM)
+
     evaluator_validation = EvaluatorHoldout(dataset.URM_val, cutoff_list=[10])
     evaluator_test = EvaluatorHoldout(dataset.URM_test, cutoff_list=[10])
 
@@ -158,31 +161,30 @@ if __name__ == '__main__':
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
 
-    # cf_models = [
-    #     # ItemKNNCF,
-    #     # UserKNNCF,
-    #     # RP3beta,
-    #     # P3alpha,
-    #     # EASE_R,
-    #     # SLIM_BPR,
-    #     # SLIMElasticNet,
-    #     # PureSVD,
-    #     # ScaledPureSVD, -> cannot be used in tune_all() -> lacks implementation (can be used in tune_one())
-    #     # PureSVDItem,
-    #     # IALS,
-    #     # LightFMCF,
-    # ]
+    cf_models = [
+        # ItemKNNCF,
+        # UserKNNCF,
+        # RP3beta,
+        # P3alpha,
+        # EASE_R,
+        # SLIM_BPR,
+        # SLIMElasticNet,
+        # PureSVD,
+        # ScaledPureSVD,
+        # PureSVDItem,
+        IALS,
+        # LightFMCF,
+    ]
 
-    # tune_cf(dataset.URM_train, dataset.URM_train_val, evaluator_validation, 
-    #     evaluator_test, cf_models, output_folder_path, n_cases=200)
+    tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
+        evaluator_test, cf_models, output_folder_path, n_cases=100)
 
-    tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
-        evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
+    # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
+    #     evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
 
     # hybrid_models = [ItemKNN_CFCBF_Hybrid]
     # tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
     #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=200)
-
     
     # hyperparameters = {
     #     'topK': Integer(low=1e2, high=2e3, prior='uniform', base=10),
@@ -192,3 +194,16 @@ if __name__ == '__main__':
     # tune_one(EASE_R, hyperparameters, evaluator_validation, evaluator_test, output_folder_path, n_cases=60)
     
 # SLIM -> SLIMElasticNet -> ScaledPureSVD?
+
+
+# earlystopping_keywargs = {}
+#         if recommender in [IALS, SLIM_BPR]:
+#             earlystopping_keywargs = {
+#                 'validation_every_n': 5,
+#                 'stop_on_validation': True,
+#                 'evaluator_object': EvaluatorHoldout(dataset.URM_test, cutoff_list=[10]),
+#                 'lower_validations_allowed': 5,
+#                 'validation_metric': 'MAP',
+#             } 
+        
+#         recommender.fit(earlystopping_keywargs)

@@ -26,12 +26,12 @@ class IALS(BaseMatrixFactorization, Incremental_Training_Early_Stopping):
     AVAILABLE_CONFIDENCE_SCALING = ['linear', 'log']
 
     def fit(
-        self, epochs=300,
+        self, epochs=15,
         num_factors=26,
         confidence_scaling='log',
-        alpha=0.0463,
-        epsilon=0.0164,
-        reg=6e-5,
+        alpha=0.046305825126852176,
+        epsilon=0.01642585372301191,
+        reg=6.005814269552529e-05,
         init_mean=0.0,
         init_std=0.1,
         **earlystopping_kwargs

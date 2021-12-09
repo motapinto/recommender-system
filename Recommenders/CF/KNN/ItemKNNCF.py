@@ -37,7 +37,7 @@ class ItemKNNCF(BaseItemSimilarityMatrix):
             self.URM_train = TF_IDF(self.URM_train.T).T
             self.URM_train = check_matrix(self.URM_train, 'csr')
 
-        similarity = Compute_Similarity(self.URM_train, shrink=shrink, topK=topK, normalize=normalize, similarity = similarity, **similarity_args)
+        similarity = Compute_Similarity(self.URM_train, shrink=shrink, topK=topK, normalize=normalize, similarity=similarity, **similarity_args)
 
         self.W_sparse = similarity.compute_similarity()
         self.W_sparse = check_matrix(self.W_sparse, format='csr')

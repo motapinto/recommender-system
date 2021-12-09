@@ -1,0 +1,16 @@
+-- already done
+EASE_R - MAP: 0.2457
+PureSVD
+PureSVDItem - 0.2311
+UserKNNCF - MAP: 0.2318
+ItemKNNCF - MAP: 0.2398
+ItemKNN_CFCFB_Hybrid - MAP: 0.2345
+P3alpha
+RP3beta - MAP: 0.2204
+IALS
+
+-- next ones
+LightFM
+Slim
+MultVAE
+other svds

@@ -1,8 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
-import similaripy as sim
 from scipy import sparse as sps
 from sklearn.model_selection import train_test_split, StratifiedKFold
 

@@ -11,7 +11,7 @@ class PureSVD(BaseMatrixFactorization):
     def __init__(self, URM_train, verbose=True):
         super(PureSVD, self).__init__(URM_train, verbose=verbose)
 
-    def fit(self, num_factors=100, random_seed=None):
+    def fit(self, num_factors=24, random_seed=None):
         start_time = time.time()
         self._print('Computing SVD decomposition...')
 
@@ -36,7 +36,7 @@ class ScaledPureSVD(PureSVD):
         super(ScaledPureSVD, self).__init__(URM_train, verbose=verbose)
 
 
-    def fit(self, num_factors=100, random_seed = None, scaling_items = 1.0, scaling_users = 1.0):
+    def fit(self, num_factors=24, random_seed=None, scaling_items=1.0, scaling_users=1.0):
         item_pop = np.ediff1d(sps.csc_matrix(self.URM_train).indptr)
         scaling_matrix = sps.diags(np.power(item_pop, scaling_items - 1))
 

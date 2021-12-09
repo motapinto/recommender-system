@@ -14,11 +14,11 @@ from Recommenders.CF.KNN.RP3beta import RP3beta
 from Recommenders.CF.KNN.EASE_R import EASE_R
 
 # KNN machine learning
-from Recommenders.CF.KNN.MachineLearning.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet, MultiThreadSLIM_SLIMElasticNet
+from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
+from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet, MultiThreadSLIM_SLIMElasticNet
 
 # Matrix Factorization
-from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD
+from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
 from Recommenders.CF.LightFM import LightFMCF
@@ -600,7 +600,21 @@ def runHyperparameterSearch_Collaborative(
 
         if recommender_class is PureSVD:
             hyperparameters_range_dictionary = {
+                'num_factors': Integer(1, 70),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        if recommender_class is ScaledPureSVD:
+            hyperparameters_range_dictionary = {
                 'num_factors': Integer(1, 350),
+                'scaling_items': Real(low = 0, high = 1000, prior = 'uniform'),
+                'scaling_users': Real(low = 0, high = 1000, prior = 'uniform') 
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -612,7 +626,7 @@ def runHyperparameterSearch_Collaborative(
 
         if recommender_class is PureSVDItem:
             hyperparameters_range_dictionary = {
-                'num_factors': Integer(1, 350),
+                'num_factors': Integer(20, 50),
                 'topK': Integer(5, 1000),
             }
 
@@ -829,7 +843,9 @@ def runHyperparameterSearch_Collaborative(
             output_file_name_root = output_file_name_root,
             metric_to_optimize = metric_to_optimize,
             cutoff_to_optimize = cutoff_to_optimize,
-            recommender_input_args_last_test = recommender_input_args_last_test)
+            recommender_input_args_last_test = recommender_input_args_last_test,
+            save_metadata=False
+        )
 
     except Exception as e:
         print('On recommender {} Exception {}'.format(recommender_class, str(e)))

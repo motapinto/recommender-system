@@ -8,8 +8,8 @@ from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
 from Recommenders.CF.KNN.RP3beta import RP3beta
 from Recommenders.CF.KNN.P3alpha import P3alpha
 from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.KNN.MachineLearning.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.MachineLearning.SLIMElasticNet import SLIMElasticNet
+from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
+from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet
 from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS

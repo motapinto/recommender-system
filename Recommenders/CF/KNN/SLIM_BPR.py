@@ -2,7 +2,7 @@ import os, sys
 from Recommenders.recommender_utils import check_matrix, similarityMatrixTopK
 from Recommenders.Base.BaseItemSimilarityMatrix import BaseItemSimilarityMatrix
 from Recommenders.Incremental_Training_Early_Stopping import Incremental_Training_Early_Stopping
-from Recommenders.CF.KNN.MachineLearning.Cython.SLIM_BPR_Epoch import SLIM_BPR_Epoch
+from Recommenders.CF.KNN.Cython.SLIM_BPR_Epoch import SLIM_BPR_Epoch
 
 class SLIM_BPR(BaseItemSimilarityMatrix, Incremental_Training_Early_Stopping):
     RECOMMENDER_NAME = 'SLIM_BPR'
@@ -18,6 +18,7 @@ class SLIM_BPR(BaseItemSimilarityMatrix, Incremental_Training_Early_Stopping):
         sgd_mode='adagrad', gamma=0.995, beta_1=0.9, beta_2=0.999,
         **earlystopping_kwargs
     ):
+      
         self.symmetric = symmetric
         self.train_with_sparse_weights=True
 

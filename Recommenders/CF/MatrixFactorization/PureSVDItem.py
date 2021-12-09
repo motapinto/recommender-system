@@ -10,7 +10,7 @@ class PureSVDItem(BaseItemSimilarityMatrix):
     def __init__(self, URM_train, verbose=True):
         super(PureSVDItem, self).__init__(URM_train, verbose=verbose)
 
-    def fit(self, num_factors=100, topK=None, random_seed=None):
+    def fit(self, num_factors=24, topK=853, random_seed=None):
         self._print('Computing SVD decomposition...')
         U, Sigma, QT = randomized_svd(
             self.URM_train,
