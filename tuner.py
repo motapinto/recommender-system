@@ -6,7 +6,7 @@ from skopt.space.space import Real
 
 from Utils.Dataset import Dataset
 from Utils.Evaluator import EvaluatorHoldout
-from Utils.methods.get_recommender_instance import get_recommender_inputs
+from Utils.methods.get_recommender_instance import get_recommender_instance
 
 # Hyper-parameters
 from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Collaborative
@@ -34,6 +34,7 @@ from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
 
 # Hybrid 
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
+from Recommenders.Hybrid.Hybrid1 import Hybrid1
 
 def run_search(hyperparameter_search_cf, cf_models):
     for recommender in cf_models:
@@ -176,15 +177,15 @@ if __name__ == '__main__':
         # LightFMCF,
     ]
 
-    tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
-        evaluator_test, cf_models, output_folder_path, n_cases=100)
+    # tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
+    #     evaluator_test, cf_models, output_folder_path, n_cases=100)
 
     # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
     #     evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
 
-    # hybrid_models = [ItemKNN_CFCBF_Hybrid]
-    # tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
-    #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=200)
+    hybrid_models = [Hybrid1]
+    tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
+        evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=20)
     
     # hyperparameters = {
     #     'topK': Integer(low=1e2, high=2e3, prior='uniform', base=10),
@@ -192,9 +193,6 @@ if __name__ == '__main__':
     #     'normalize_matrix': Categorical([False]), # With normalize_matrix:True tends to perform worse
     # }
     # tune_one(EASE_R, hyperparameters, evaluator_validation, evaluator_test, output_folder_path, n_cases=60)
-    
-# SLIM -> SLIMElasticNet -> ScaledPureSVD?
-
 
 # earlystopping_keywargs = {}
 #         if recommender in [IALS, SLIM_BPR]:

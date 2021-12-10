@@ -14,14 +14,15 @@ from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
 
-from Recommenders.CF.KNN.EASE_R import EASE_R
+from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
+from Recommenders.Hybrid.Hybrid1 import Hybrid1
 
 if __name__ == '__main__':
     dataset = Dataset(path='./Data', validation_percentage=0, test_percentage=0, seed=None)
     ICM = dataset.get_icm_format_k(11)
     stacked_URM, _ = dataset.stack_URM_ICM(dataset.URM_train, ICM)
     
-    recommender = EASE_R(stacked_URM)
+    recommender = Hybrid1(stacked_URM, dataset.ICM)
     recommender.fit()
 
     submission = get_submission(dataset.targets, recommender)

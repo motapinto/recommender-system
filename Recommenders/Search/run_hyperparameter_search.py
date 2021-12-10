@@ -6,18 +6,14 @@ import traceback
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 
-# KNN
+# CF
 from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
 from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
 from Recommenders.CF.KNN.P3alpha import P3alpha
 from Recommenders.CF.KNN.RP3beta import RP3beta
 from Recommenders.CF.KNN.EASE_R import EASE_R
-
-# KNN machine learning
 from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
 from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet, MultiThreadSLIM_SLIMElasticNet
-
-# Matrix Factorization
 from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 from Recommenders.CF.MatrixFactorization.IALS import IALS
@@ -27,9 +23,12 @@ from Recommenders.CF.LightFM import LightFMCF
 # MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 # from Recommenders.Neural.MultVAERecommender import MultVAERecommender_OptimizerMask as MultVAERecommender
 
+# CB
 from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
 
+# Hybrid
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
+from Recommenders.Hybrid.Hybrid1 import Hybrid1
 # from Recommenders.FactorizationMachines.LightFM import LightFMItemHybridRecommender, LightFMUserHybridRecommender
 # from Recommenders.FeatureWeighting.Cython.CFW_D_Similarity_Cython import CFW_D_Similarity_Cython
 # from Recommenders.FeatureWeighting.Cython.CFW_DVV_Similarity_Cython import CFW_DVV_Similarity_Cython
@@ -253,6 +252,40 @@ def runHyperparameterSearch_Hybrid(
                     run_KNNCFRecommender_on_similarity_type_partial(similarity_type)
 
             return
+        
+        elif recommender_class in [Hybrid1]:
+            hyperparameters_range_dictionary = {
+                'threshold': Integer(0, 20),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+            if URM_train_last_test is not None:
+                recommender_input_args_last_test = recommender_input_args.copy()
+                recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
+            else:
+                recommender_input_args_last_test = None
+
+            hyperparameterSearch.search(
+                recommender_input_args,
+                hyperparameter_search_space=hyperparameters_range_dictionary,
+                n_cases=n_cases,
+                n_random_starts=n_random_starts,
+                resume_from_saved=resume_from_saved,
+                save_model=save_model,
+                evaluate_on_test=evaluate_on_test,
+                max_total_time=max_total_time,
+                output_folder_path=output_folder_path,
+                output_file_name_root=output_file_name_root,
+                metric_to_optimize=metric_to_optimize,
+                cutoff_to_optimize=cutoff_to_optimize,
+                recommender_input_args_last_test=recommender_input_args_last_test,
+                save_metadata=False)
 
 #         elif recommender_class in [LightFMItemHybridRecommender, LightFMUserHybridRecommender]:
 #                 hyperparameters_range_dictionary = {
@@ -278,7 +311,6 @@ def runHyperparameterSearch_Hybrid(
 #         else:
 #             recommender_input_args_last_test = None
 
-#         ## Final step, after the hyperparameter range has been defined for each type of algorithm
 #         hyperparameterSearch.search(
 #             recommender_input_args,
 #             hyperparameter_search_space= hyperparameters_range_dictionary,

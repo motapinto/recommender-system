@@ -1,3 +1,8 @@
+- feature selection, feature weighting
+- list combination is shit
+- linear combination of ratings (and change the weights for the scores to make sense)
+- measure overlap of the recommenders list (compute the difference for all users). if the degree of overlap is small its a good sign
+
 Hybrid recommenders ----
 - Stacking URM, ICM, UCM
 - Combine models with same structure (all item based similaruty models)

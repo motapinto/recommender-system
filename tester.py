@@ -18,6 +18,8 @@ from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
 from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 
 from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
+from Recommenders.Hybrid.Hybrid1 import Hybrid1
+from Recommenders.Hybrid.Hybrid2 import Hybrid2
 
 def evaluate_recommender(recommender_class, URM_train, ICM, URM_test, fit_params={}):
     start = time.time()
@@ -66,20 +68,31 @@ if __name__ == '__main__':
 
     else:
         stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, dataset.ICM)     
-        params = {
-            'num_factors': 24,
-            'topK': 853, 
-        }
+        # params = {
+        #     'threshold': 5,
+        #     'ignore_cold': False, 
+        # }
 
-        result_df, exec_time = evaluate_recommender(PureSVDItem, 
-            stacked_URM, stacked_ICM, dataset.URM_test, fit_params=params)
-        map = result_df.loc[10]['MAP']
-        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
+        # result_df, exec_time = evaluate_recommender(Hybrid1, 
+        #     stacked_URM, stacked_ICM, dataset.URM_test, fit_params=params)
+        # map = result_df.loc[10]['MAP']
+        # print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
 
-        result_df, exec_time = evaluate_recommender(PureSVDItem, 
+        result_df, exec_time = evaluate_recommender(Hybrid1, 
             stacked_URM, stacked_ICM, dataset.URM_test)
         map = result_df.loc[10]['MAP']
         print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
+
+        result_df, exec_time = evaluate_recommender(Hybrid2, 
+            stacked_URM, stacked_ICM, dataset.URM_test)
+        map = result_df.loc[10]['MAP']
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
+
+        result_df, exec_time = evaluate_recommender(EASE_R, 
+            stacked_URM, stacked_ICM, dataset.URM_test)
+        map = result_df.loc[10]['MAP']
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
+
 
         
 # ItemKNN_CFCBF_Hybrid - MAP: 0.2345

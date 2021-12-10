@@ -111,7 +111,7 @@ class SearchAbstractClass(object):
         parallelize = False,
         save_model = 'best',
         evaluate_on_test = 'best',
-        save_metadata = True,
+        save_metadata = False,
     ):
         raise NotImplementedError('Function search not implemented for this class')
 
