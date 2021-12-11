@@ -18,7 +18,6 @@ class SLIM_BPR(BaseItemSimilarityMatrix, Incremental_Training_Early_Stopping):
         sgd_mode='adagrad', gamma=0.995, beta_1=0.9, beta_2=0.999,
         **earlystopping_kwargs
     ):
-      
         self.symmetric = symmetric
         self.train_with_sparse_weights=True
 
@@ -30,16 +29,16 @@ class SLIM_BPR(BaseItemSimilarityMatrix, Incremental_Training_Early_Stopping):
 
         self.cythonEpoch = SLIM_BPR_Epoch(
             URM_train_positive,
-            train_with_sparse_weights = self.train_with_sparse_weights,
-            final_model_sparse_weights = True,
+            train_with_sparse_weights=self.train_with_sparse_weights,
+            final_model_sparse_weights=True,
             topK=topK,
             learning_rate=learning_rate,
-            li_reg = lambda_i,
-            lj_reg = lambda_j,
-            symmetric = self.symmetric,
-            sgd_mode = sgd_mode,
-            verbose = self.verbose,
-            random_seed = random_seed,
+            li_reg=lambda_i,
+            lj_reg=lambda_j,
+            symmetric=self.symmetric,
+            sgd_mode=sgd_mode,
+            verbose=self.verbose,
+            random_seed=random_seed,
             gamma=gamma,
             beta_1=beta_1,
             beta_2=beta_2)

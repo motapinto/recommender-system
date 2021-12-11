@@ -18,8 +18,7 @@ class PureSVD(BaseMatrixFactorization):
         U, Sigma, QT = randomized_svd(
             self.URM_train,
             n_components=num_factors,
-            #n_iter=5,
-            random_state = random_seed)
+            random_state=random_seed)
 
         U_s = U * sps.diags(Sigma)
 
@@ -36,7 +35,7 @@ class ScaledPureSVD(PureSVD):
         super(ScaledPureSVD, self).__init__(URM_train, verbose=verbose)
 
 
-    def fit(self, num_factors=24, random_seed=None, scaling_items=1.0, scaling_users=1.0):
+    def fit(self, num_factors=33, random_seed=None, scaling_items=0.9642068255908885, scaling_users=1.0639837534462961):
         item_pop = np.ediff1d(sps.csc_matrix(self.URM_train).indptr)
         scaling_matrix = sps.diags(np.power(item_pop, scaling_items - 1))
 

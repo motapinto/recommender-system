@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from scipy import sparse as sps
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.model_selection import train_test_split, StratifiedKFold
 
 class Dataset(object):
@@ -13,8 +14,9 @@ class Dataset(object):
         self.targets = np.unique(targets['user_id'])
         
         # Read and process URM (Note: no need to create new mapping, since all item identifiers are present in the URM)
-        # URM stacking not improving results ...
         URM = self.read_URM_csv(path)
+        self.URM_all = self.URM_to_csr(URM)
+
         unique_users = URM['user'].unique()
         self.num_users = len(unique_users)
         unique_items = URM['item'].unique()
@@ -194,6 +196,18 @@ class Dataset(object):
         if k == 14: return sps.hstack((self.event_ICM, self.genre_ICM, self.subgenre_ICM)).tocsr()
         
         if k == 15: return sps.hstack((self.channel_ICM, self.genre_ICM, self.event_ICM, self.subgenre_ICM)).tocsr()
+
+    def remove_low_variance_features(self, matrix, p=0.1):
+        ''' 
+        Feature with low variance reduction
+        Note: Not improving results
+        '''
+        selector = VarianceThreshold(threshold=(p*(1-p)))
+        return selector.fit_transform(matrix)
+    
+    def get_items_popularity(self):
+        item_popularity = np.ediff1d(self.URM_all.tocsc().indptr)
+        return item_popularity
 
     # Targets
     def read_targets_csv(self, path):

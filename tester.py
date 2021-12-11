@@ -1,25 +1,11 @@
 import time
 from tqdm import trange
-
 from numpy.lib.function_base import average
-from Recommenders.CF.MatrixFactorization.IALS import IALS
+
 from Utils.Dataset import Dataset
 from Utils.Evaluator import EvaluatorHoldout
 from Utils.methods.get_recommender_instance import get_recommender_instance
-
-from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
-from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
-from Recommenders.CF.KNN.RP3beta import RP3beta
-from Recommenders.CF.KNN.P3alpha import P3alpha
-from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet
-from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
-from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
-
-from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
-from Recommenders.Hybrid.Hybrid1 import Hybrid1
-from Recommenders.Hybrid.Hybrid2 import Hybrid2
+from Utils.import_recommenders import *
 
 def evaluate_recommender(recommender_class, URM_train, ICM, URM_test, fit_params={}):
     start = time.time()
@@ -67,37 +53,19 @@ if __name__ == '__main__':
         evaluate_models(dataset.k, dataset.URM_trains, dataset.ICM, dataset.URM_tests, test_models)
 
     else:
-        stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, dataset.ICM)     
-        # params = {
-        #     'threshold': 5,
-        #     'ignore_cold': False, 
-        # }
+        stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, dataset.ICM)  
 
-        # result_df, exec_time = evaluate_recommender(Hybrid1, 
-        #     stacked_URM, stacked_ICM, dataset.URM_test, fit_params=params)
+        result_df, exec_time = evaluate_recommender(EASE_R, 
+            stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
+        map = result_df.loc[10]['MAP']
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')   
+
+        # result_df, exec_time = evaluate_recommender(Hybrid2, 
+        #     stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
         # map = result_df.loc[10]['MAP']
         # print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
 
-        result_df, exec_time = evaluate_recommender(Hybrid1, 
-            stacked_URM, stacked_ICM, dataset.URM_test)
+        result_df, exec_time = evaluate_recommender(Hybrid3, 
+            stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
         map = result_df.loc[10]['MAP']
         print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
-
-        result_df, exec_time = evaluate_recommender(Hybrid2, 
-            stacked_URM, stacked_ICM, dataset.URM_test)
-        map = result_df.loc[10]['MAP']
-        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
-
-        result_df, exec_time = evaluate_recommender(EASE_R, 
-            stacked_URM, stacked_ICM, dataset.URM_test)
-        map = result_df.loc[10]['MAP']
-        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
-
-
-        
-# ItemKNN_CFCBF_Hybrid - MAP: 0.2345
-# UserKNNCF - MAP: 0.2318
-# ItemKNNCF - MAP: 0.2398
-# EASE_R - MAP: 0.2457
-# RP3beta - MAP: 0.2204
-# PureSVDItem - MAP: 0.2271

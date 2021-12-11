@@ -40,12 +40,14 @@ class Compute_Similarity:
             columns_with_full_features = np.sum(np.ediff1d(sps.csc_matrix(dataMatrix).indptr) == dataMatrix.shape[0])
 
             if similarity in ['dice', 'jaccard', 'tversky'] and columns_with_full_features >= dataMatrix.shape[1]/2:
-                warnings.warn('Compute_Similarity: {:.2f}% of the columns have all features, '
-                              'set-based similarity heuristics will not be able to discriminate between the columns.'.format(columns_with_full_features/dataMatrix.shape[1]*100))
+                warnings.warn(
+                    'Compute_Similarity: {:.2f}% of the columns have all features, '
+                    'set-based similarity heuristics will not be able to discriminate between the columns.'.format(columns_with_full_features/dataMatrix.shape[1]*100))
 
             if dataMatrix.shape[0] == 1 and columns_with_full_features >= dataMatrix.shape[1]/2:
-                warnings.warn('Compute_Similarity: {:.2f}% of the columns have a value for the single feature the data has, '
-                              'most similarity heuristics will not be able to discriminate between the columns.'.format(columns_with_full_features/dataMatrix.shape[1]*100))
+                warnings.warn(
+                    'Compute_Similarity: {:.2f}% of the columns have a value for the single feature the data has, '
+                    'most similarity heuristics will not be able to discriminate between the columns.'.format(columns_with_full_features/dataMatrix.shape[1]*100))
 
             assert not (dataMatrix.shape[0] == 1 and dataMatrix.nnz == dataMatrix.shape[1]),\
                 'Compute_Similarity: data has only 1 feature (shape: {}) with values in all columns,' \

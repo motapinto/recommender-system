@@ -15,26 +15,10 @@ from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearc
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 
-# CF
-from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
-from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
-from Recommenders.CF.KNN.RP3beta import RP3beta
-from Recommenders.CF.KNN.P3alpha import P3alpha
-from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet
-from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
-from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
-from Recommenders.CF.MatrixFactorization.IALS import IALS
-from Recommenders.CF.LightFM import LightFMCF
-from Recommenders.CF.MultVAE import MultVAE
-
-# CB
-from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
-
-# Hybrid 
-from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
-from Recommenders.Hybrid.Hybrid1 import Hybrid1
+# Recommenders
+from Utils.import_recommenders import *
+from Recommenders.CF.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
+    MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 
 def run_search(hyperparameter_search_cf, cf_models):
     for recommender in cf_models:
@@ -120,35 +104,6 @@ def tune_cbf(
 
     run_search(run_hyperparameter_search_cf, cf_models)
 
-def tune_one(
-    recommender_class, hyperparameters, evaluator_validation, evaluator_test, output_folder_path, n_cases=20
-):
-    args = list(get_recommender_inputs(recommender_class, dataset.URM_train, dataset.ICM))
-
-    parameterSearch = SearchBayesianSkopt(
-        recommender_class,
-        evaluator_validation=evaluator_validation,
-        evaluator_test=evaluator_test)
-
-    recommender_input_args = SearchInputRecommenderArgs(
-        CONSTRUCTOR_POSITIONAL_ARGS=[dataset.URM_train], #[dataset.URM_train, dataset.ICM]
-        CONSTRUCTOR_KEYWORD_ARGS={},
-        FIT_POSITIONAL_ARGS=[],
-        FIT_KEYWORD_ARGS={}
-    )
-
-    parameterSearch.search(
-        recommender_input_args,
-        hyperparameter_search_space=hyperparameters,
-        n_cases=n_cases,
-        n_random_starts=int(n_cases*0.5),
-        save_model='no',
-        output_folder_path=output_folder_path,
-        output_file_name_root=recommender_class.RECOMMENDER_NAME,
-        metric_to_optimize='MAP',
-        cutoff_to_optimize=10,
-        resume_from_saved=True)
-
 if __name__ == '__main__':
     dataset = Dataset(path='./Data', validation_percentage=0.1, test_percentage=0.2)
 
@@ -168,24 +123,27 @@ if __name__ == '__main__':
         # RP3beta,
         # P3alpha,
         # EASE_R,
-        # SLIM_BPR,
+        #SLIM_BPR,
         # SLIMElasticNet,
         # PureSVD,
-        # ScaledPureSVD,
+        ScaledPureSVD,
         # PureSVDItem,
-        IALS,
-        # LightFMCF,
+        # IALS,
+        # LightFM,
+        #MatrixFactorization_FunkSVD_Cython,
+        #MatrixFactorization_AsySVD_Cython,
+        #MatrixFactorization_BPR_Cython
     ]
 
-    # tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
-    #     evaluator_test, cf_models, output_folder_path, n_cases=100)
+    tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
+        evaluator_test, cf_models, output_folder_path, n_cases=150)
 
     # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
     #     evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
 
-    hybrid_models = [Hybrid1]
-    tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
-        evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=20)
+    # hybrid_models = [Hybrid2]
+    # tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
+    #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=20)
     
     # hyperparameters = {
     #     'topK': Integer(low=1e2, high=2e3, prior='uniform', base=10),

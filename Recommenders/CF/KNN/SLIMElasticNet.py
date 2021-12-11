@@ -199,7 +199,7 @@ class MultiThreadSLIM_SLIMElasticNet(SLIMElasticNet):
             verbose=True, workers=int(cpu_count()*0.3)):
 
         assert l1_ratio>= 0 and l1_ratio<=1, \
-            "ElasticNet: l1_ratio must be between 0 and 1, provided value was {}".format(l1_ratio)
+            'ElasticNet: l1_ratio must be between 0 and 1, provided value was {}'.format(l1_ratio)
 
         self.alpha = alpha
         self.l1_ratio = l1_ratio

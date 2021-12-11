@@ -31,7 +31,6 @@ from Utils.methods.seconds_to_biggest_unit import seconds_to_biggest_unit
 @cython.cdivision(True)
 @cython.overflowcheck(False)
 cdef class Compute_Similarity_Cython:
-
     cdef int TopK
     cdef long n_columns, n_rows
 

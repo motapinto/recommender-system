@@ -2,37 +2,13 @@ import os, multiprocessing
 from functools import partial
 from skopt.space import Real, Integer, Categorical
 import traceback
+from Recommenders.CF.MatrixFactorization.NMF import NMF
 
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
-
-# CF
-from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
-from Recommenders.CF.KNN.UserKNNCF import UserKNNCF
-from Recommenders.CF.KNN.P3alpha import P3alpha
-from Recommenders.CF.KNN.RP3beta import RP3beta
-from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.KNN.SLIM_BPR import SLIM_BPR
-from Recommenders.CF.KNN.SLIMElasticNet import SLIMElasticNet, MultiThreadSLIM_SLIMElasticNet
-from Recommenders.CF.MatrixFactorization.PureSVD import PureSVD, ScaledPureSVD
-from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
-from Recommenders.CF.MatrixFactorization.IALS import IALS
-from Recommenders.CF.LightFM import LightFMCF
-# from Recommenders.MatrixFactorization.NMFRecommender import NMFRecommender
-# from Recommenders.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
-# MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
-# from Recommenders.Neural.MultVAERecommender import MultVAERecommender_OptimizerMask as MultVAERecommender
-
-# CB
-from Recommenders.CB.KNN.ItemKNNCBF import ItemKNNCBF
-
-# Hybrid
-from Recommenders.Hybrid.ItemKNN_CFCBF_Hybrid import ItemKNN_CFCBF_Hybrid
-from Recommenders.Hybrid.Hybrid1 import Hybrid1
-# from Recommenders.FactorizationMachines.LightFM import LightFMItemHybridRecommender, LightFMUserHybridRecommender
-# from Recommenders.FeatureWeighting.Cython.CFW_D_Similarity_Cython import CFW_D_Similarity_Cython
-# from Recommenders.FeatureWeighting.Cython.CFW_DVV_Similarity_Cython import CFW_DVV_Similarity_Cython
-# from Recommenders.FeatureWeighting.Cython.FBSM_Rating_Cython import FBSM_Rating_Cython
+from Utils.import_recommenders import *
+from Recommenders.CF.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
+    MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 
 def runHyperparameterSearch_FeatureWeighting(
     recommender_class, URM_train, W_train, ICM_object, ICM_name, n_cases = None,
@@ -253,9 +229,10 @@ def runHyperparameterSearch_Hybrid(
 
             return
         
-        elif recommender_class in [Hybrid1]:
+        elif recommender_class in [Hybrid1, Hybrid2]:
             hyperparameters_range_dictionary = {
                 'threshold': Integer(0, 20),
+                'alpha': Real(0, 1)
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -552,6 +529,7 @@ def runHyperparameterSearch_Collaborative(
         output_file_name_root = recommender_class.RECOMMENDER_NAME
         hyperparameterSearch = SearchBayesianSkopt(recommender_class, evaluator_validation=evaluator_validation, evaluator_test=evaluator_test)
 
+        # Already highly tuned
         if recommender_class in [ItemKNNCF, UserKNNCF]:
             if similarity_type_list is None:
                 similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
@@ -603,9 +581,9 @@ def runHyperparameterSearch_Collaborative(
 
         if recommender_class is P3alpha:
             hyperparameters_range_dictionary = {
-                'topK': Integer(5, 1000),
-                'alpha': Real(low = 0, high = 2, prior = 'uniform'),
-                'normalize_similarity': Categorical([True, False]),
+                'topK': Integer(50, 1500),
+                'alpha': Real(low=0.5, high=0.9, prior='uniform'),
+                'normalize_similarity': Categorical([False]),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -617,9 +595,9 @@ def runHyperparameterSearch_Collaborative(
 
         if recommender_class is RP3beta:
             hyperparameters_range_dictionary = {
-                'topK': Integer(5, 1000),
-                'alpha': Real(low = 0, high = 2, prior = 'uniform'),
-                'beta': Real(low = 0, high = 2, prior = 'uniform'),
+                'topK': Integer(100, 1500),
+                'alpha': Real(low=0, high=2, prior='uniform'),
+                'beta': Real(low=0, high=2, prior='uniform'),
                 'normalize_similarity': Categorical([True, False]),
             }
 
@@ -630,9 +608,10 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
+        # Already highly tuned!
         if recommender_class is PureSVD:
             hyperparameters_range_dictionary = {
-                'num_factors': Integer(1, 70),
+                'num_factors': Integer(15, 30),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -644,9 +623,9 @@ def runHyperparameterSearch_Collaborative(
 
         if recommender_class is ScaledPureSVD:
             hyperparameters_range_dictionary = {
-                'num_factors': Integer(1, 350),
-                'scaling_items': Real(low = 0, high = 1000, prior = 'uniform'),
-                'scaling_users': Real(low = 0, high = 1000, prior = 'uniform') 
+                'num_factors': Integer(10, 40),
+                'scaling_items': Real(low=0, high=5, prior='uniform'),
+                'scaling_users': Real(low=0, high=5, prior='uniform') 
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -656,10 +635,11 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
+        # Already highly tuned! (can still tune better topK value)
         if recommender_class is PureSVDItem:
             hyperparameters_range_dictionary = {
-                'num_factors': Integer(20, 50),
-                'topK': Integer(5, 1000),
+                'num_factors': Integer(20, 35),
+                'topK': Integer(400, 1500),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -722,69 +702,69 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        # if recommender_class is MatrixFactorization_FunkSVD_Cython:
-        #     hyperparameters_range_dictionary = {
-        #         'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-        #         'epochs': Categorical([500]),
-        #         'use_bias': Categorical([True, False]),
-        #         'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
-        #         'num_factors': Integer(1, 200),
-        #         'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
-        #         'negative_interactions_quota': Real(low = 0.0, high = 0.5, prior = 'uniform'),
-        #     }
+        if recommender_class is MatrixFactorization_FunkSVD_Cython:
+            hyperparameters_range_dictionary = {
+                'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
+                'epochs': Categorical([500]),
+                'use_bias': Categorical([True, False]),
+                'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
+                'num_factors': Integer(1, 200),
+                'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
+                'negative_interactions_quota': Real(low = 0.0, high = 0.5, prior = 'uniform'),
+            }
 
-        #     if allow_dropout_MF:
-        #         hyperparameters_range_dictionary['dropout_quota'] = Real(low = 0.01, high = 0.7, prior = 'uniform')
+            if allow_dropout_MF:
+                hyperparameters_range_dictionary['dropout_quota'] = Real(low = 0.01, high = 0.7, prior = 'uniform')
 
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = earlystopping_keywargs
-        #     )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = earlystopping_keywargs
+            )
             
-        # if recommender_class is MatrixFactorization_AsySVD_Cython:
-        #     hyperparameters_range_dictionary = {
-        #         'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-        #         'epochs': Categorical([500]),
-        #         'use_bias': Categorical([True, False]),
-        #         'batch_size': Categorical([1]),
-        #         'num_factors': Integer(1, 200),
-        #         'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
-        #         'negative_interactions_quota': Real(low = 0.0, high = 0.5, prior = 'uniform'),
-        #     }
+        if recommender_class is MatrixFactorization_AsySVD_Cython:
+            hyperparameters_range_dictionary = {
+                'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
+                'epochs': Categorical([500]),
+                'use_bias': Categorical([True, False]),
+                'batch_size': Categorical([1]),
+                'num_factors': Integer(1, 200),
+                'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
+                'negative_interactions_quota': Real(low = 0.0, high = 0.5, prior = 'uniform'),
+            }
 
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = earlystopping_keywargs
-        #     )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = earlystopping_keywargs
+            )
 
-        # if recommender_class is MatrixFactorization_BPR_Cython:
-        #     hyperparameters_range_dictionary = {
-        #         'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-        #         'epochs': Categorical([1500]),
-        #         'num_factors': Integer(1, 200),
-        #         'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
-        #         'positive_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'negative_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-        #         'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
-        #     }
+        if recommender_class is MatrixFactorization_BPR_Cython:
+            hyperparameters_range_dictionary = {
+                'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
+                'epochs': Categorical([1500]),
+                'num_factors': Integer(1, 200),
+                'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
+                'positive_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'negative_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
+            }
 
-        #     if allow_dropout_MF:
-        #         hyperparameters_range_dictionary['dropout_quota'] = Real(low = 0.01, high = 0.7, prior = 'uniform')
+            if allow_dropout_MF:
+                hyperparameters_range_dictionary['dropout_quota'] = Real(low = 0.01, high = 0.7, prior = 'uniform')
 
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {**earlystopping_keywargs}
-        #     )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {**earlystopping_keywargs}
+            )
 
         if recommender_class is IALS:
             hyperparameters_range_dictionary = {
@@ -803,22 +783,22 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
 
-        # if recommender_class is NMFRecommender:
-        #     hyperparameters_range_dictionary = {
-        #         'num_factors': Integer(1, 350),
-        #         'solver': Categorical(['coordinate_descent', 'multiplicative_update']),
-        #         'init_type': Categorical(['random', 'nndsvda']),
-        #         'beta_loss': Categorical(['frobenius', 'kullback-leibler']),
-        #     }
+        if recommender_class is NMF:
+            hyperparameters_range_dictionary = {
+                'num_factors': Integer(1, 350),
+                'solver': Categorical(['coordinate_descent', 'multiplicative_update']),
+                'init_type': Categorical(['random', 'nndsvda']),
+                'beta_loss': Categorical(['frobenius', 'kullback-leibler']),
+            }
 
-        #     recommender_input_args = SearchInputRecommenderArgs(
-        #         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-        #         CONSTRUCTOR_KEYWORD_ARGS = {},
-        #         FIT_POSITIONAL_ARGS = [],
-        #         FIT_KEYWORD_ARGS = {}
-        #     )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
 
-        if recommender_class is LightFMCF:
+        if recommender_class is LightFM:
             hyperparameters_range_dictionary = {
                 'epochs': Categorical([300]),
                 'n_components': Integer(1, 200),
@@ -836,24 +816,24 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
 
-        # if recommender_class is MultVAERecommender:
-        #     n_items = URM_train.shape[1]
+        if recommender_class is MultVAE:
+            n_items = URM_train.shape[1]
 
-        #     hyperparameters_range_dictionary = {
-        #         'epochs': Categorical([300]),
-        #         'learning_rate': Real(low=1e-6, high=1e-2, prior='log-uniform'),
-        #         'l2_reg': Real(low=1e-6, high=1e-2, prior='log-uniform'),
-        #         'dropout': Real(low=0., high=0.8, prior='uniform'),
-        #         'total_anneal_steps': Integer(100000, 600000),
-        #         'anneal_cap': Real(low=0., high=0.6, prior='uniform'),
-        #         'batch_size': Categorical([128, 256, 512, 1024]),
+            hyperparameters_range_dictionary = {
+                'epochs': Categorical([300]),
+                'learning_rate': Real(low=1e-6, high=1e-2, prior='log-uniform'),
+                'l2_reg': Real(low=1e-6, high=1e-2, prior='log-uniform'),
+                'dropout': Real(low=0., high=0.8, prior='uniform'),
+                'total_anneal_steps': Integer(100000, 600000),
+                'anneal_cap': Real(low=0., high=0.6, prior='uniform'),
+                'batch_size': Categorical([128, 256, 512, 1024]),
 
-        #         'encoding_size': Integer(1, min(512, n_items)),
-        #         'next_layer_size_multiplier': Integer(2, 10),
-        #         'max_n_hidden_layers': Integer(1, 4),
-        #         # Reduce max_layer_size if estimated last layer weights size exceeds 2 GB
-        #         'max_layer_size': Categorical([min(5*1e3, int(2*1e9*8/64/n_items))]),
-        #     }
+                'encoding_size': Integer(1, min(512, n_items)),
+                'next_layer_size_multiplier': Integer(2, 10),
+                'max_n_hidden_layers': Integer(1, 4),
+                # Reduce max_layer_size if estimated last layer weights size exceeds 2 GB
+                'max_layer_size': Categorical([min(5*1e3, int(2*1e9*8/64/n_items))]),
+            }
 
         if URM_train_last_test is not None:
             recommender_input_args_last_test = recommender_input_args.copy()

@@ -1,17 +1,17 @@
 
 import numpy as np
-from tqdm import tqdm
 from numpy import linalg as LA
 from Recommenders.Base.Base import Base
 from Recommenders.Base.TopPop import TopPop
 from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
 from Recommenders.CF.KNN.EASE_R import EASE_R
+from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
 
-class Hybrid2(Base):
-    RECOMMENDER_NAME = 'Hybrid2'
+class Hybrid3(Base):
+    RECOMMENDER_NAME = 'Hybrid3'
     
-    def __init__(self, URM_train, ICM):
-        super(Hybrid2, self).__init__(URM_train)
+    def __init__(self, URM_train, ICM=None):
+        super(Hybrid3, self).__init__(URM_train)
         
         self.ICM = ICM
 
@@ -38,19 +38,21 @@ class Hybrid2(Base):
         for idx, user in enumerate(user_id_array):
             interactions = len(self.URM_train[user,:].indices)
             
-            if interactions < self.threshold: 
-                w = top_pop_w[idx]
+            # if interactions < self.threshold: 
+            #     w = top_pop_w[idx]
+            #     w /= LA.norm(w, 2)
+            #     item_weights[idx,:] = w
+
+            if interactions > 340 and interactions < 500:
+                w = item_knn_cf_w[idx]
                 w /= LA.norm(w, 2)
                 item_weights[idx,:] = w
                 
             else:
-                w1 = item_knn_cf_w[idx]
-                w1 /= LA.norm(w1, 2)
+                w = ease_r_w[idx]
+                w /= LA.norm(w, 2)
+                item_weights[idx,:] = w 
 
-                w2 = ease_r_w[idx]
-                w2 /= LA.norm(w2, 2)
-
-                item_weights[idx,:] = w1 * (self.alpha) + w2 * (1-self.alpha)
         return item_weights
 
 
