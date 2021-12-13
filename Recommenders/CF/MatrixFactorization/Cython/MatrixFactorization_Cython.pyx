@@ -7,7 +7,7 @@ import sys
 import numpy as np
 
 class _MatrixFactorization_Cython(BaseMatrixFactorization, Incremental_Training_Early_Stopping):
-    RECOMMENDER_NAME = 'MatrixFactorization_Cython_Recommender'
+    RECOMMENDER_NAME = 'MatrixFactorization_Cython'
 
     def __init__(self, URM_train, verbose =True, algorithm_name ='MF_BPR'):
         super(_MatrixFactorization_Cython, self).__init__(URM_train, verbose = verbose)
@@ -16,15 +16,15 @@ class _MatrixFactorization_Cython(BaseMatrixFactorization, Incremental_Training_
         self.normalize = False
         self.algorithm_name = algorithm_name
 
-    def fit(self, epochs=95, batch_size=1,
-            num_factors=1, positive_threshold_BPR=None,
-            learning_rate=0.0021533181620510436,
+    def fit(self, epochs=300, batch_size=1000,
+            num_factors=10, positive_threshold_BPR=None,
+            learning_rate=0.001,
             use_bias=True,
-            sgd_mode='adam',
+            sgd_mode='sgd',
             negative_interactions_quota=0.0,
-            dropout_quota=0.01,
+            dropout_quota=None,
             init_mean=0.0, init_std_dev=0.1,
-            user_reg=0.0, item_reg=0.0, bias_reg=0.0, positive_reg=0.01, negative_reg=1e-05,
+            user_reg=0.0, item_reg=0.0, bias_reg=0.0, positive_reg=0.0, negative_reg=0.0,
             random_seed=None,
             **earlystopping_kwargs):
 
@@ -128,7 +128,7 @@ class MatrixFactorization_BPR_Cython(_MatrixFactorization_Cython):
     Subclas allowing only for MF BPR
     '''
 
-    RECOMMENDER_NAME = 'MatrixFactorization_BPR_Cython_Recommender'
+    RECOMMENDER_NAME = 'MatrixFactorization_BPR_Cython'
 
     def __init__(self, *pos_args, **key_args):
         super(MatrixFactorization_BPR_Cython, self).__init__(*pos_args, algorithm_name='MF_BPR', **key_args)
@@ -136,6 +136,18 @@ class MatrixFactorization_BPR_Cython(_MatrixFactorization_Cython):
     def fit(self, **key_args):
         key_args['use_bias'] = False
         key_args['negative_interactions_quota'] = 0.0
+
+        if(len(key_args) == 0):
+            key_args = {
+                'sgd_mode': 'adam', 
+                'epochs': 95,
+                'num_factors': 1,
+                'batch_size': 1,
+                'positive_reg': 0.01,
+                'negative_reg': 1e-05,
+                'learning_rate': 0.0021533181620510436,
+                'dropout_quota': 0.01
+            } 
 
         super(MatrixFactorization_BPR_Cython, self).fit(**key_args)
 
@@ -152,7 +164,7 @@ class MatrixFactorization_FunkSVD_Cython(_MatrixFactorization_Cython):
     Latent factors are initialized from a Normal distribution with given mean and std.
     '''
 
-    RECOMMENDER_NAME = 'MatrixFactorization_FunkSVD_Cython_Recommender'
+    RECOMMENDER_NAME = 'MatrixFactorization_FunkSVD_Cython'
 
     def __init__(self, *pos_args, **key_args):
         super(MatrixFactorization_FunkSVD_Cython, self).__init__(*pos_args, algorithm_name="FUNK_SVD", **key_args)

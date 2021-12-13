@@ -14,6 +14,7 @@ from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearc
 from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Content
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
+from Recommenders.Similarity.Compute_Similarity import SimilarityFunction
 
 # Recommenders
 from Utils.import_recommenders import *
@@ -45,7 +46,11 @@ def tune_cf(
         allow_dropout_MF=True,
         allow_bias_URM=True,
         resume_from_saved=False,
-        similarity_type_list=['asymmetric', 'tversky', 'euclidean'], # only for ItemKNNCF, UserKNNCF
+        similarity_type_list= [
+            #SimilarityFunction.ASYMMETRIC, 
+            #SimilarityFunction.TVERSKY,
+            'adjusted',
+        ],
         save_model='no',
         n_cases=n_cases,
         n_random_starts=int(n_cases*0.3))
@@ -123,20 +128,24 @@ if __name__ == '__main__':
         # RP3beta,
         # P3alpha,
         # EASE_R,
-        #SLIM_BPR,
+        
+        # SLIM_BPR, ---- today -- check samples per second
         # SLIMElasticNet,
+        MultiThreadSLIM_SLIMElasticNet
+        
         # PureSVD,
-        ScaledPureSVD,
+        # ScaledPureSVD,
         # PureSVDItem,
-        # IALS,
-        # LightFM,
+        #IALS,  ---- today -- check samples per second
+        # LightFM, ---- today -- check samples per second
         #MatrixFactorization_FunkSVD_Cython,
-        #MatrixFactorization_AsySVD_Cython,
-        #MatrixFactorization_BPR_Cython
+        #MatrixFactorization_AsySVD_Cython, --- check
+        #MatrixFactorization_BPR_Cython --- check
     ]
 
+
     tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
-        evaluator_test, cf_models, output_folder_path, n_cases=150)
+        evaluator_test, cf_models, output_folder_path, n_cases=50)
 
     # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
     #     evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)

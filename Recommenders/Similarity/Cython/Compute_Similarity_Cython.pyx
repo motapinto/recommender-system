@@ -7,12 +7,12 @@
 #cython: unpack_method_calls=True
 #cython: overflowcheck=False
 
-IF UNAME_SYSNAME == "linux":
-    DEF LONG_t = "long"
-ELIF  UNAME_SYSNAME == "Windows":
-    DEF LONG_t = "long long"
+IF UNAME_SYSNAME == 'linux':
+    DEF LONG_t = 'long'
+ELIF  UNAME_SYSNAME == 'Windows':
+    DEF LONG_t = 'long long'
 ELSE:
-    DEF LONG_t = "long long"
+    DEF LONG_t = 'long long'
 
 import time, sys
 import cython
@@ -52,7 +52,7 @@ cdef class Compute_Similarity_Cython:
 
     def __init__(self, dataMatrix, topK = 100, shrink=0, normalize = True,
                  asymmetric_alpha = 0.5, tversky_alpha = 1.0, tversky_beta = 1.0,
-                 similarity = "cosine", row_weights = None):
+                 similarity = 'cosine', row_weights = None):
         '''
         Computes the cosine similarity on the columns of dataMatrix
         If it is computed on URM=|users|x|items|, pass the URM as is.
@@ -91,26 +91,26 @@ cdef class Compute_Similarity_Cython:
         self.dice_coefficient = False
         self.tversky_coefficient = False
 
-        if similarity == "adjusted":
+        if similarity == 'adjusted':
             self.adjusted_cosine = True
-        elif similarity == "asymmetric":
+        elif similarity == 'asymmetric':
             self.asymmetric_cosine = True
-        elif similarity == "pearson":
+        elif similarity == 'pearson':
             self.pearson_correlation = True
-        elif similarity == "jaccard" or similarity == "tanimoto":
+        elif similarity == 'jaccard' or similarity == 'tanimoto':
             self.tanimoto_coefficient = True
             # Tanimoto has a specific kind of normalization
             self.normalize = False
 
-        elif similarity == "dice":
+        elif similarity == 'dice':
             self.dice_coefficient = True
             self.normalize = False
 
-        elif similarity == "tversky":
+        elif similarity == 'tversky':
             self.tversky_coefficient = True
             self.normalize = False
 
-        elif similarity == "cosine":
+        elif similarity == 'cosine':
             pass
         else:
             raise ValueError(
@@ -478,7 +478,7 @@ cdef class Compute_Similarity_Cython:
                 if current_time - last_print_time > 300  or processed_items==end_col_local:
                     new_time_value, new_time_unit = seconds_to_biggest_unit(time.time() - start_time)
 
-                    print("Similarity column {} ({:4.1f}%), {:.2f} column/sec. Elapsed time {:.2f} {}".format(
+                    print('Similarity column {} ({:4.1f}%), {:.2f} column/sec. Elapsed time {:.2f} {}'.format(
                         processed_items, processed_items*1.0/(end_col_local-start_col_local)*100, items_per_sec, new_time_value, new_time_unit))
 
                     last_print_time = current_time

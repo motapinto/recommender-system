@@ -16,7 +16,7 @@ class RP3beta(BaseItemSimilarityMatrix):
         return 'RP3beta(alpha={}, beta={}, topk={}, normalize_similarity={})'.format(
             self.alpha, self.beta, self.topK, self.normalize_similarity)
 
-    def fit(self, alpha=1.028657, beta=0.692638, topK=563, normalize_similarity=True):
+    def fit(self, alpha=0.7262744966754912, beta=0.583348423295889, topK=100, normalize_similarity=True):
         self.alpha = alpha
         self.beta = beta
         self.topK = topK

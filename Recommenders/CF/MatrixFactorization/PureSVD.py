@@ -34,7 +34,6 @@ class ScaledPureSVD(PureSVD):
     def __init__(self, URM_train, verbose=True):
         super(ScaledPureSVD, self).__init__(URM_train, verbose=verbose)
 
-
     def fit(self, num_factors=33, random_seed=None, scaling_items=0.9642068255908885, scaling_users=1.0639837534462961):
         item_pop = np.ediff1d(sps.csc_matrix(self.URM_train).indptr)
         scaling_matrix = sps.diags(np.power(item_pop, scaling_items - 1))

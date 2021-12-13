@@ -24,3 +24,17 @@ Combine models with same structure (parameters have same mearning)
 - Simplest solution: weighted average (solutions are better for weihted avreage between 2 models)
 - Normalization can be required is order of magnitude is very different
 - Value range can be very different between models with different structure
+
+Combine models with different structure
+- combine models via weighted average of item scores
+- for models with different loss functions we need to normalize the values
+ 
+
+ add negative interactions for FM models
+fill the dataset with equal number of positive and negative samples/interactions
+radomnly select negative interactions for every user (more or less the same as the number of positive interactions)
+can have a little more negative interaction than positive, but the value can be tuned as an hyper parameter
+use SGD niormally, minimese MSE, and use early stopping, use bpr(quite complex)
+ICM feature weighting
+number of interactions different models
+combine weights for hybrid

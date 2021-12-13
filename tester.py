@@ -17,7 +17,11 @@ def evaluate_recommender(recommender_class, URM_train, ICM, URM_test, fit_params
     result_df, _ = evaluator_test.evaluateRecommender(recommender)
     end = time.time()
 
-    return result_df, int(end-start)
+    map = result_df.loc[10]['MAP']
+    exec_time = int(end-start)
+    print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')   
+
+    return result_df, exec_time
 
 def evaluate_models(k, URM_trains, ICM, URM_tests, test_models):
     avg_results = []
@@ -55,17 +59,9 @@ if __name__ == '__main__':
     else:
         stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, dataset.ICM)  
 
-        result_df, exec_time = evaluate_recommender(EASE_R, 
-            stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
-        map = result_df.loc[10]['MAP']
-        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')   
+        evaluate_recommender(IALS, stacked_URM.copy(), 
+            stacked_ICM.copy(), dataset.URM_test)
 
-        # result_df, exec_time = evaluate_recommender(Hybrid2, 
-        #     stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
-        # map = result_df.loc[10]['MAP']
-        # print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
-
-        result_df, exec_time = evaluate_recommender(Hybrid3, 
-            stacked_URM.copy(), stacked_ICM.copy(), dataset.URM_test)
-        map = result_df.loc[10]['MAP']
-        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')
+        fit_params = {'num_factors': 32, 'epochs': 30, 'confidence_scaling': 'linear', 'alpha': 0.41481077075270684, 'epsilon': 0.008058602991460452, 'reg': 1.1458744991769949e-05}
+        evaluate_recommender(IALS, stacked_URM.copy(), 
+            stacked_ICM.copy(), dataset.URM_test, fit_params=fit_params)

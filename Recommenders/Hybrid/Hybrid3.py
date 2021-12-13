@@ -1,4 +1,3 @@
-
 import numpy as np
 from numpy import linalg as LA
 from Recommenders.Base.Base import Base

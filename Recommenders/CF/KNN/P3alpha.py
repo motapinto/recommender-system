@@ -16,7 +16,7 @@ class P3alpha(BaseItemSimilarityMatrix):
         return 'P3alpha(alpha={}, topk={}, normalize_similarity={})'.format(
             self.alpha, self.topK, self.normalize_similarity)
 
-    def fit(self, topK=134, alpha=0.7714, normalize_similarity=False):
+    def fit(self, topK=50, alpha=0.7359609397767387, normalize_similarity=False):
         self.topK = topK
         self.alpha = alpha
         self.normalize_similarity = normalize_similarity

@@ -2,8 +2,8 @@ import os, multiprocessing
 from functools import partial
 from skopt.space import Real, Integer, Categorical
 import traceback
-from Recommenders.CF.MatrixFactorization.NMF import NMF
 
+from Recommenders.Similarity.Compute_Similarity import SimilarityFunction
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 from Utils.import_recommenders import *
@@ -110,18 +110,18 @@ def runHyperparameterSearch_FeatureWeighting(
     #         }
     #     )
 
-    ## Final step, after the hyperparameter range has been defined for each type of algorithm
     # hyperparameterSearch.search(
     #     recommender_input_args,
-    #     hyperparameter_search_space= hyperparameters_range_dictionary,
-    #     n_cases = n_cases,
-    #     resume_from_saved = resume_from_saved,
-    #     save_model = save_model,
-    #     max_total_time = max_total_time,
-    #     output_folder_path = output_folder_path,
-    #     output_file_name_root = output_file_name_root,
-    #     metric_to_optimize = metric_to_optimize,
-    #     cutoff_to_optimize = cutoff_to_optimize)
+    #     hyperparameter_search_space=hyperparameters_range_dictionary,
+    #     n_cases=n_cases,
+    #     resume_from_saved=resume_from_saved,
+    #     save_model=save_model,
+    #     max_total_time=max_total_time,
+    #     output_folder_path=output_folder_path,
+    #     output_file_name_root=output_file_name_root,
+    #     metric_to_optimize=metric_to_optimize,
+    #     cutoff_to_optimize=cutoff_to_optimize,
+    #     save_metadata=False)
 
 
 def runHyperparameterSearch_Hybrid(
@@ -178,7 +178,17 @@ def runHyperparameterSearch_Hybrid(
 
         if recommender_class == ItemKNN_CFCBF_Hybrid:
             if similarity_type_list is None:
-                similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
+                similarity_type_list = [
+                    SimilarityFunction.COSINE, 
+                    SimilarityFunction.JACCARD, 
+                    SimilarityFunction.ASYMMETRIC, 
+                    SimilarityFunction.DICE,
+                    SimilarityFunction.TVERSKY,
+                    SimilarityFunction.EUCLIDEAN,
+                    SimilarityFunction.TANIMOTO,
+                    SimilarityFunction.ADJUSTED,
+                    SimilarityFunction.PEARSON,
+                ]
 
             hyperparameters_range_dictionary = {}
 
@@ -370,25 +380,26 @@ def run_KNNRecommender_on_similarity_type(
     hyperparameterSearch.search(
         recommender_input_args,
         hyperparameter_search_space= local_hyperparameter_search_space,
-        n_cases = n_cases,
-        n_random_starts = n_random_starts,
-        resume_from_saved = resume_from_saved,
-        save_model = save_model,
-        evaluate_on_test = evaluate_on_test,
-        max_total_time = max_total_time,
-        output_folder_path = output_folder_path,
-        output_file_name_root = output_file_name_root + '_' + similarity_type,
-        metric_to_optimize = metric_to_optimize,
-        cutoff_to_optimize = cutoff_to_optimize,
-        recommender_input_args_last_test = recommender_input_args_last_test)
+        n_cases=n_cases,
+        n_random_starts=n_random_starts,
+        resume_from_saved=resume_from_saved,
+        save_model=save_model,
+        evaluate_on_test=evaluate_on_test,
+        max_total_time=max_total_time,
+        output_folder_path=output_folder_path,
+        output_file_name_root=output_file_name_root + '_' + similarity_type,
+        metric_to_optimize=metric_to_optimize,
+        cutoff_to_optimize=cutoff_to_optimize,
+        recommender_input_args_last_test=recommender_input_args_last_test,
+        save_metadata=False)
 
 def runHyperparameterSearch_Content(
-    recommender_class, URM_train, ICM_object, ICM_name, URM_train_last_test = None,
-    n_cases = None, n_random_starts = None, resume_from_saved = False,
-    save_model = 'best', evaluate_on_test = 'best', max_total_time = None,
-    evaluator_validation= None, evaluator_test=None, metric_to_optimize = None, cutoff_to_optimize = None,
-    output_folder_path ='result_experiments/', parallelizeKNN = False, allow_weighting = True, allow_bias_ICM = False,
-    similarity_type_list = None):
+    recommender_class, URM_train, ICM_object, ICM_name, URM_train_last_test=None,
+    n_cases=None, n_random_starts=None, resume_from_saved=False,
+    save_model='best', evaluate_on_test='best', max_total_time=None,
+    evaluator_validation= None, evaluator_test=None, metric_to_optimize=None, cutoff_to_optimize=None,
+    output_folder_path ='result_experiments/', parallelizeKNN=False, allow_weighting=True, allow_bias_ICM=False,
+    similarity_type_list=None):
     
     '''
     This function performs the hyperparameter optimization for a content-based recommender
@@ -431,7 +442,17 @@ def runHyperparameterSearch_Content(
     hyperparameterSearch = SearchBayesianSkopt(recommender_class, evaluator_validation=evaluator_validation, evaluator_test=evaluator_test)
 
     if similarity_type_list is None:
-        similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
+        similarity_type_list = [
+            SimilarityFunction.COSINE, 
+            SimilarityFunction.JACCARD, 
+            SimilarityFunction.ASYMMETRIC, 
+            SimilarityFunction.DICE,
+            SimilarityFunction.TVERSKY,
+            SimilarityFunction.EUCLIDEAN,
+            SimilarityFunction.TANIMOTO,
+            SimilarityFunction.ADJUSTED,
+            SimilarityFunction.PEARSON,
+        ]
 
     recommender_input_args = SearchInputRecommenderArgs(
         CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
@@ -532,7 +553,7 @@ def runHyperparameterSearch_Collaborative(
         # Already highly tuned
         if recommender_class in [ItemKNNCF, UserKNNCF]:
             if similarity_type_list is None:
-                similarity_type_list = ['cosine', 'jaccard', 'asymmetric', 'dice', 'tversky']
+                similarity_type_list = ['asymmetric', 'tversky']
 
             recommender_input_args = SearchInputRecommenderArgs(
                 CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
@@ -579,25 +600,11 @@ def runHyperparameterSearch_Collaborative(
 
             return
 
-        if recommender_class is P3alpha:
+        # Already highly tuned
+        elif recommender_class is P3alpha:
             hyperparameters_range_dictionary = {
-                'topK': Integer(50, 1500),
-                'alpha': Real(low=0.5, high=0.9, prior='uniform'),
-                'normalize_similarity': Categorical([False]),
-            }
-
-            recommender_input_args = SearchInputRecommenderArgs(
-                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
-                CONSTRUCTOR_KEYWORD_ARGS = {},
-                FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {}
-            )
-
-        if recommender_class is RP3beta:
-            hyperparameters_range_dictionary = {
-                'topK': Integer(100, 1500),
-                'alpha': Real(low=0, high=2, prior='uniform'),
-                'beta': Real(low=0, high=2, prior='uniform'),
+                'topK': Integer(45, 60),
+                'alpha': Real(low=0.6, high=0.85, prior='uniform'),
                 'normalize_similarity': Categorical([True, False]),
             }
 
@@ -608,8 +615,24 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        # Already highly tuned!
-        if recommender_class is PureSVD:
+        # Already highly tuned
+        elif recommender_class is RP3beta:
+            hyperparameters_range_dictionary = {
+                'topK': Integer(100, 1500),
+                'alpha': Real(low=0.6, high=1, prior='uniform'),
+                'beta': Real(low=0.2, high=0.8, prior='uniform'),
+                'normalize_similarity': Categorical([True, False]),
+            }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
+
+        # Already highly tuned
+        elif recommender_class is PureSVD:
             hyperparameters_range_dictionary = {
                 'num_factors': Integer(15, 30),
             }
@@ -621,7 +644,8 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is ScaledPureSVD:
+        # Already highly tuned
+        elif recommender_class is ScaledPureSVD:
             hyperparameters_range_dictionary = {
                 'num_factors': Integer(10, 40),
                 'scaling_items': Real(low=0, high=5, prior='uniform'),
@@ -635,8 +659,8 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        # Already highly tuned! (can still tune better topK value)
-        if recommender_class is PureSVDItem:
+        # Already highly tuned
+        elif recommender_class is PureSVDItem:
             hyperparameters_range_dictionary = {
                 'num_factors': Integer(20, 35),
                 'topK': Integer(400, 1500),
@@ -649,7 +673,7 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is SLIM_BPR:
+        elif recommender_class is SLIM_BPR:
             hyperparameters_range_dictionary = {
                 'topK': Integer(5, 1000),
                 'epochs': Categorical([1500]),
@@ -669,7 +693,8 @@ def runHyperparameterSearch_Collaborative(
                 }
             )
 
-        if recommender_class is SLIMElasticNet or recommender_class is MultiThreadSLIM_SLIMElasticNet:
+        # Already highly tuned
+        elif recommender_class is SLIMElasticNet or recommender_class is MultiThreadSLIM_SLIMElasticNet:
             hyperparameters_range_dictionary = {
                 'alpha': Real(low = 1e-3, high = 1.0, prior = 'uniform'),
                 'l1_ratio': Real(low = 1e-5, high = 1.0, prior = 'log-uniform'),
@@ -683,7 +708,8 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is EASE_R:
+        # Already highly tuned
+        elif recommender_class is EASE_R:
             # This are the hyperparameters that perform better for this dataset
             # With topK:Integer(5, 3000) tends to perform worse
             # With normalize_matrix:Categorical([True, False]) tends to perform worse
@@ -702,13 +728,13 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is MatrixFactorization_FunkSVD_Cython:
+        elif recommender_class is MatrixFactorization_FunkSVD_Cython:
             hyperparameters_range_dictionary = {
                 'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-                'epochs': Categorical([500]),
+                'epochs': Categorical([200]),
                 'use_bias': Categorical([True, False]),
                 'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
-                'num_factors': Integer(1, 200),
+                'num_factors': Integer(1, 50),
                 'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
@@ -725,13 +751,13 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
             
-        if recommender_class is MatrixFactorization_AsySVD_Cython:
+        elif recommender_class is MatrixFactorization_AsySVD_Cython:
             hyperparameters_range_dictionary = {
                 'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-                'epochs': Categorical([500]),
+                'epochs': Categorical([200]),
                 'use_bias': Categorical([True, False]),
                 'batch_size': Categorical([1]),
-                'num_factors': Integer(1, 200),
+                'num_factors': Integer(1, 50),
                 'item_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 'user_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 'learning_rate': Real(low = 1e-4, high = 1e-1, prior = 'log-uniform'),
@@ -745,11 +771,12 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
 
-        if recommender_class is MatrixFactorization_BPR_Cython:
+        # Already highly tuned
+        elif recommender_class is MatrixFactorization_BPR_Cython:
             hyperparameters_range_dictionary = {
                 'sgd_mode': Categorical(['sgd', 'adagrad', 'adam']),
-                'epochs': Categorical([1500]),
-                'num_factors': Integer(1, 200),
+                'epochs': Categorical([200]),
+                'num_factors': Integer(1, 50),
                 'batch_size': Categorical([1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]),
                 'positive_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
                 'negative_reg': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
@@ -766,10 +793,11 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {**earlystopping_keywargs}
             )
 
-        if recommender_class is IALS:
+        # Already highly tuned
+        elif recommender_class is IALS:
             hyperparameters_range_dictionary = {
-                'num_factors': Integer(1, 200),
-                'epochs': Categorical([300]),
+                'num_factors': Integer(10, 35),
+                'epochs': Categorical([30]),
                 'confidence_scaling': Categorical(['linear', 'log']),
                 'alpha': Real(low = 1e-3, high = 50.0, prior = 'log-uniform'),
                 'epsilon': Real(low = 1e-3, high = 10.0, prior = 'log-uniform'),
@@ -783,7 +811,7 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
 
-        if recommender_class is NMF:
+        elif recommender_class is NMF:
             hyperparameters_range_dictionary = {
                 'num_factors': Integer(1, 350),
                 'solver': Categorical(['coordinate_descent', 'multiplicative_update']),
@@ -798,7 +826,7 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = {}
             )
 
-        if recommender_class is LightFM:
+        elif recommender_class is LightFM:
             hyperparameters_range_dictionary = {
                 'epochs': Categorical([300]),
                 'n_components': Integer(1, 200),
@@ -816,7 +844,7 @@ def runHyperparameterSearch_Collaborative(
                 FIT_KEYWORD_ARGS = earlystopping_keywargs
             )
 
-        if recommender_class is MultVAE:
+        elif recommender_class is MultVAE:
             n_items = URM_train.shape[1]
 
             hyperparameters_range_dictionary = {
@@ -841,21 +869,20 @@ def runHyperparameterSearch_Collaborative(
         else:
             recommender_input_args_last_test = None
 
-        ## Final step, after the hyperparameter range has been defined for each type of algorithm
         hyperparameterSearch.search(
             recommender_input_args,
-            hyperparameter_search_space= hyperparameters_range_dictionary,
-            n_cases = n_cases,
-            n_random_starts = n_random_starts,
-            resume_from_saved = resume_from_saved,
-            save_model = save_model,
-            evaluate_on_test = evaluate_on_test,
-            max_total_time = max_total_time,
-            output_folder_path = output_folder_path,
-            output_file_name_root = output_file_name_root,
-            metric_to_optimize = metric_to_optimize,
-            cutoff_to_optimize = cutoff_to_optimize,
-            recommender_input_args_last_test = recommender_input_args_last_test,
+            hyperparameter_search_space=hyperparameters_range_dictionary,
+            n_cases=n_cases,
+            n_random_starts=n_random_starts,
+            resume_from_saved=resume_from_saved,
+            save_model=save_model,
+            evaluate_on_test=evaluate_on_test,
+            max_total_time=max_total_time,
+            output_folder_path=output_folder_path,
+            output_file_name_root=output_file_name_root,
+            metric_to_optimize=metric_to_optimize,
+            cutoff_to_optimize=cutoff_to_optimize,
+            recommender_input_args_last_test=recommender_input_args_last_test,
             save_metadata=False
         )
 

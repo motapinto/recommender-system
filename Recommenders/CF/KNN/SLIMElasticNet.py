@@ -195,7 +195,7 @@ def _partial_fit(items, topK, alpha, l1_ratio, urm_shape, positive_only=True, sh
     return values, rows, cols
 
 class MultiThreadSLIM_SLIMElasticNet(SLIMElasticNet):
-    def fit(self, alpha=1.0, l1_ratio=0.1, positive_only=True, topK=100,
+    def fit(self, alpha=0.07346712919466696, l1_ratio=0.004700155418328322, positive_only=True, topK=790,
             verbose=True, workers=int(cpu_count()*0.3)):
 
         assert l1_ratio>= 0 and l1_ratio<=1, \
