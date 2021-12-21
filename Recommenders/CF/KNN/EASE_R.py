@@ -58,16 +58,6 @@ class EASE_R(BaseItemSimilarityMatrix):
             self.W_sparse = check_matrix(B, format='npy', dtype=np.float32)
             self._W_sparse_format_checked = True
             self._compute_item_score = self._compute_score_W_dense
-        
-        
-        # if topK is None:
-        #     self.W_sparse = B
-        #     self._W_sparse_format_checked = True
-        #     self._compute_item_score = self._compute_score_W_dense
-        #
-        # else:
-        #     self.W_sparse = similarityMatrixTopK(B, k = topK, verbose=False)
-        #     self.W_sparse = sps.csr_matrix(self.W_sparse)
 
     def _is_content_sparse_check(self, matrix):
         if self.sparse_threshold_quota is None:

@@ -120,7 +120,6 @@ class Dataset(object):
     def stack_URM_ICM(self, URM_train, ICM):
         stacked_URM = sps.vstack([URM_train, ICM.T])
         stacked_URM = sps.csr_matrix(stacked_URM)
-
         stacked_ICM = sps.csr_matrix(stacked_URM.T)
 
         return stacked_URM, stacked_ICM

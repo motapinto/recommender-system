@@ -1,12 +1,14 @@
+import traceback
+import numpy as np
 import os, multiprocessing
 from functools import partial
 from skopt.space import Real, Integer, Categorical
-import traceback
 
 from Recommenders.Similarity.Compute_Similarity import SimilarityFunction
 from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
 from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
 from Utils.import_recommenders import *
+from Utils.import_recommenders import NMF
 from Recommenders.CF.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
     MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 
@@ -274,44 +276,87 @@ def runHyperparameterSearch_Hybrid(
                 recommender_input_args_last_test=recommender_input_args_last_test,
                 save_metadata=False)
 
-#         elif recommender_class in [LightFMItemHybridRecommender, LightFMUserHybridRecommender]:
-#                 hyperparameters_range_dictionary = {
-#                     'epochs': Categorical([300]),
-#                     'n_components': Integer(1, 200),
-#                     'loss': Categorical(['bpr', 'warp', 'warp-kos']),
-#                     'sgd_mode': Categorical(['adagrad', 'adadelta']),
-#                     'learning_rate': Real(low = 1e-6, high = 1e-1, prior = 'log-uniform'),
-#                     'item_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-#                     'user_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
-#                 }
+        elif recommender_class in [Hybrid4]:
+            hyperparameters_range_dictionary = {
+                'alpha': Categorical([0.5]),
+                'beta': Categorical([0.5]),
+                'gamma': Categorical([0.5]),
+                'delta': Real(low=0.1, high=0.9),
+                'epsilon': Categorical([0.5]),
+                'zeta': Categorical([0.5]),
+                'eta': Categorical([0.5]),
+                #'norm': Categorical([1, 2, np.inf, -np.inf]),
+                # 'theta': Real(low=0, high=1),
+                # 'iota': Real(low=0, high=1),
+            }
 
-#                 recommender_input_args = SearchInputRecommenderArgs(
-#                     CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
-#                     CONSTRUCTOR_KEYWORD_ARGS = {},
-#                     FIT_POSITIONAL_ARGS = [],
-#                     FIT_KEYWORD_ARGS = earlystopping_keywargs
-#                 )
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = {}
+            )
 
-#         if URM_train_last_test is not None:
-#             recommender_input_args_last_test = recommender_input_args.copy()
-#             recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
-#         else:
-#             recommender_input_args_last_test = None
+            if URM_train_last_test is not None:
+                recommender_input_args_last_test = recommender_input_args.copy()
+                recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
+            else:
+                recommender_input_args_last_test = None
 
-#         hyperparameterSearch.search(
-#             recommender_input_args,
-#             hyperparameter_search_space= hyperparameters_range_dictionary,
-#             n_cases = n_cases,
-#             n_random_starts = n_random_starts,
-#             resume_from_saved = resume_from_saved,
-#             save_model = save_model,
-#             evaluate_on_test = evaluate_on_test,
-#             max_total_time = max_total_time,
-#             output_folder_path = output_folder_path,
-#             output_file_name_root = output_file_name_root,
-#             metric_to_optimize = metric_to_optimize,
-#             cutoff_to_optimize = cutoff_to_optimize,
-#             recommender_input_args_last_test = recommender_input_args_last_test)
+            hyperparameterSearch.search(
+                recommender_input_args,
+                hyperparameter_search_space=hyperparameters_range_dictionary,
+                n_cases=n_cases,
+                n_random_starts=n_random_starts,
+                resume_from_saved=resume_from_saved,
+                save_model=save_model,
+                evaluate_on_test=evaluate_on_test,
+                max_total_time=max_total_time,
+                output_folder_path=output_folder_path,
+                output_file_name_root=output_file_name_root,
+                metric_to_optimize=metric_to_optimize,
+                cutoff_to_optimize=cutoff_to_optimize,
+                recommender_input_args_last_test=recommender_input_args_last_test,
+                save_metadata=False)
+
+        elif recommender_class in [LightFMItemHybrid, LightFMUserHybrid]:
+                hyperparameters_range_dictionary = {
+                    'epochs': Categorical([300]),
+                    'n_components': Integer(1, 200),
+                    'loss': Categorical(['bpr', 'warp', 'warp-kos']),
+                    'sgd_mode': Categorical(['adagrad', 'adadelta']),
+                    'learning_rate': Real(low = 1e-6, high = 1e-1, prior = 'log-uniform'),
+                    'item_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                    'user_alpha': Real(low = 1e-5, high = 1e-2, prior = 'log-uniform'),
+                }
+
+                recommender_input_args = SearchInputRecommenderArgs(
+                    CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
+                    CONSTRUCTOR_KEYWORD_ARGS = {},
+                    FIT_POSITIONAL_ARGS = [],
+                    FIT_KEYWORD_ARGS = earlystopping_keywargs
+                )
+
+        if URM_train_last_test is not None:
+            recommender_input_args_last_test = recommender_input_args.copy()
+            recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
+        else:
+            recommender_input_args_last_test = None
+
+        hyperparameterSearch.search(
+            recommender_input_args,
+            hyperparameter_search_space= hyperparameters_range_dictionary,
+            n_cases = n_cases,
+            n_random_starts = n_random_starts,
+            resume_from_saved = resume_from_saved,
+            save_model = save_model,
+            evaluate_on_test = evaluate_on_test,
+            max_total_time = max_total_time,
+            output_folder_path = output_folder_path,
+            output_file_name_root = output_file_name_root,
+            metric_to_optimize = metric_to_optimize,
+            cutoff_to_optimize = cutoff_to_optimize,
+            recommender_input_args_last_test = recommender_input_args_last_test)
 
     except Exception as e:
         print('On recommender {} Exception {}'.format(recommender_class, str(e)))
@@ -862,6 +907,13 @@ def runHyperparameterSearch_Collaborative(
                 # Reduce max_layer_size if estimated last layer weights size exceeds 2 GB
                 'max_layer_size': Categorical([min(5*1e3, int(2*1e9*8/64/n_items))]),
             }
+
+            recommender_input_args = SearchInputRecommenderArgs(
+                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train],
+                CONSTRUCTOR_KEYWORD_ARGS = {},
+                FIT_POSITIONAL_ARGS = [],
+                FIT_KEYWORD_ARGS = earlystopping_keywargs
+            )
 
         if URM_train_last_test is not None:
             recommender_input_args_last_test = recommender_input_args.copy()

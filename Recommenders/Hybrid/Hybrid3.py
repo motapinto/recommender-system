@@ -4,7 +4,7 @@ from Recommenders.Base.Base import Base
 from Recommenders.Base.TopPop import TopPop
 from Recommenders.CF.KNN.ItemKNNCF import ItemKNNCF
 from Recommenders.CF.KNN.EASE_R import EASE_R
-from Recommenders.CF.MatrixFactorization.PureSVDItem import PureSVDItem
+from Recommenders.CF.MatrixFactorization.PureSVD import PureSVDItem
 
 class Hybrid3(Base):
     RECOMMENDER_NAME = 'Hybrid3'
@@ -36,11 +36,6 @@ class Hybrid3(Base):
         
         for idx, user in enumerate(user_id_array):
             interactions = len(self.URM_train[user,:].indices)
-            
-            # if interactions < self.threshold: 
-            #     w = top_pop_w[idx]
-            #     w /= LA.norm(w, 2)
-            #     item_weights[idx,:] = w
 
             if interactions > 340 and interactions < 500:
                 w = item_knn_cf_w[idx]

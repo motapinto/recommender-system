@@ -1,6 +1,9 @@
+import os
+import time
 import numpy as np
 from Utils.DataIO import DataIO
 from Recommenders.recommender_utils import check_matrix
+from Utils.Evaluator import EvaluatorHoldout
 
 class Base(object):
     RECOMMENDER_NAME = 'Recommender_Base_Class'
@@ -131,3 +134,25 @@ class Base(object):
              self.__setattr__(attrib_name, data_dict[attrib_name])
 
         self._print('Loading complete')
+
+    def evaluate_model(self, URM_test, fit_params={}):
+        start = time.time()
+        evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
+
+        if len(fit_params) == 0:
+            output_folder_path = os.path.join('Recommenders', 'saved_models', 'test'+os.sep)
+            try:
+                self.load_model(output_folder_path)
+            except:
+                self.fit()
+        else:
+            self.fit(**fit_params)
+
+        result_df, _ = evaluator_test.evaluateRecommender(self)
+        end = time.time()
+
+        map = result_df.loc[10]['MAP']
+        exec_time = int(end-start)
+        print(f'\nRecommender performance: MAP = {map}. Time: {exec_time} s.\n')   
+
+        return result_df, exec_time

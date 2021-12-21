@@ -205,10 +205,10 @@ class _MultVAE_original(_MultDAE_original):
             tf.compat.v1.summary.histogram(bias_key, self.biases_p[-1])
 
 class MultVAEBase(Base, Incremental_Training_Early_Stopping, BaseTempFolder):
-    RECOMMENDER_NAME ='MultVAERecommender'
+    RECOMMENDER_NAME ='MultVAEBase'
 
     def __init__(self, URM_train):
-        super(MultVAERecommender, self).__init__(URM_train)
+        super(MultVAEBase, self).__init__(URM_train)
 
     def _compute_item_score(self, user_id_array, items_to_compute = None):
         URM_train_user_slice = self.URM_train[user_id_array]
@@ -405,6 +405,6 @@ class MultVAE(MultVAEBase):
 
         self._print('Architecture: {}'.format(p_dims))
 
-        super(MultVAERecommender_OptimizerMask, self).fit(epochs=epochs, batch_size=batch_size, dropout=dropout, learning_rate=learning_rate,
+        super(MultVAEBase, self).fit(epochs=epochs, batch_size=batch_size, dropout=dropout, learning_rate=learning_rate,
                 total_anneal_steps=total_anneal_steps, anneal_cap=anneal_cap, p_dims=p_dims, l2_reg=l2_reg,
                 temp_file_folder=temp_file_folder, **earlystopping_kwargs)

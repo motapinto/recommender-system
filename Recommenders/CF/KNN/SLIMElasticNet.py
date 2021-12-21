@@ -26,14 +26,14 @@ class SLIMElasticNet(BaseItemSimilarityMatrix):
         http://glaros.dtc.umn.edu/gkhome/fetch/papers/SLIM2011icdm.pdf
     '''
 
-    RECOMMENDER_NAME = "SLIMElasticNet"
+    RECOMMENDER_NAME = 'SLIMElasticNet'
 
     def __init__(self, URM_train, verbose=True):
         super(SLIMElasticNet, self).__init__(URM_train, verbose=verbose)
 
     @ignore_warnings(category=ConvergenceWarning)
     def fit(self, l1_ratio=0.1, alpha = 1.0, positive_only=True, topK = 100):
-        assert l1_ratio>= 0 and l1_ratio<=1, "{}: l1_ratio must be between 0 and 1, provided value was {}".format(self.RECOMMENDER_NAME, l1_ratio)
+        assert l1_ratio>= 0 and l1_ratio<=1, '{}: l1_ratio must be between 0 and 1, provided value was {}'.format(self.RECOMMENDER_NAME, l1_ratio)
 
         self.l1_ratio = l1_ratio
         self.positive_only = positive_only
@@ -118,7 +118,7 @@ class SLIMElasticNet(BaseItemSimilarityMatrix):
             new_time_value, new_time_unit = seconds_to_biggest_unit(elapsed_time)
 
             if time.time() - start_time_printBatch > 300 or currentItem == n_items-1:
-                self._print("Processed {} ({:4.1f}%) in {:.2f} {}. Items per second: {:.2f}".format(
+                self._print('Processed {} ({:4.1f}%) in {:.2f} {}. Items per second: {:.2f}'.format(
                     currentItem+1,
                     100.0* float(currentItem+1)/n_items,
                     new_time_value,
@@ -195,7 +195,7 @@ def _partial_fit(items, topK, alpha, l1_ratio, urm_shape, positive_only=True, sh
     return values, rows, cols
 
 class MultiThreadSLIM_SLIMElasticNet(SLIMElasticNet):
-    def fit(self, alpha=0.07346712919466696, l1_ratio=0.004700155418328322, positive_only=True, topK=790,
+    def fit(self, alpha=0.03940285944263345, l1_ratio=3.326001985929221e-5, positive_only=True, topK=643,
             verbose=True, workers=int(cpu_count()*0.3)):
 
         assert l1_ratio>= 0 and l1_ratio<=1, \

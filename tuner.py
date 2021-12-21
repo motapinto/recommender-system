@@ -1,25 +1,16 @@
 import os
 import traceback
 from functools import partial
-from skopt.space import Integer, Categorical
-from skopt.space.space import Real
 
 from Utils.Dataset import Dataset
 from Utils.Evaluator import EvaluatorHoldout
 from Utils.methods.get_recommender_instance import get_recommender_instance
 
-# Hyper-parameters
 from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Collaborative
 from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Hybrid
 from Recommenders.Search.run_hyperparameter_search import runHyperparameterSearch_Content
-from Recommenders.Search.SearchAbstractClass import SearchInputRecommenderArgs
-from Recommenders.Search.SearchBayesianSkopt import SearchBayesianSkopt
-from Recommenders.Similarity.Compute_Similarity import SimilarityFunction
 
-# Recommenders
 from Utils.import_recommenders import *
-from Recommenders.CF.MatrixFactorization.Cython.MatrixFactorization_Cython import MatrixFactorization_BPR_Cython,\
-    MatrixFactorization_FunkSVD_Cython, MatrixFactorization_AsySVD_Cython
 
 def run_search(hyperparameter_search_cf, cf_models):
     for recommender in cf_models:
@@ -47,9 +38,8 @@ def tune_cf(
         allow_bias_URM=True,
         resume_from_saved=False,
         similarity_type_list= [
-            #SimilarityFunction.ASYMMETRIC, 
-            #SimilarityFunction.TVERSKY,
-            'adjusted',
+            'asymmetric', 
+            'tversky',
         ],
         save_model='no',
         n_cases=n_cases,
@@ -110,10 +100,8 @@ def tune_cbf(
     run_search(run_hyperparameter_search_cf, cf_models)
 
 if __name__ == '__main__':
-    dataset = Dataset(path='./Data', validation_percentage=0.1, test_percentage=0.2)
-
-    ICM = dataset.get_icm_format_k(11)
-    stacked_URM, _ = dataset.stack_URM_ICM(dataset.URM_train, ICM)
+    dataset = Dataset(path='./Data', validation_percentage=0.1, test_percentage=0.2, seed=1234)
+    stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train, dataset.ICM)
 
     evaluator_validation = EvaluatorHoldout(dataset.URM_val, cutoff_list=[10])
     evaluator_test = EvaluatorHoldout(dataset.URM_test, cutoff_list=[10])
@@ -122,53 +110,19 @@ if __name__ == '__main__':
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
 
-    cf_models = [
-        # ItemKNNCF,
-        # UserKNNCF,
-        # RP3beta,
-        # P3alpha,
-        # EASE_R,
-        
-        # SLIM_BPR, ---- today -- check samples per second
-        # SLIMElasticNet,
-        MultiThreadSLIM_SLIMElasticNet
-        
-        # PureSVD,
-        # ScaledPureSVD,
-        # PureSVDItem,
-        #IALS,  ---- today -- check samples per second
-        # LightFM, ---- today -- check samples per second
-        #MatrixFactorization_FunkSVD_Cython,
-        #MatrixFactorization_AsySVD_Cython, --- check
-        #MatrixFactorization_BPR_Cython --- check
-    ]
-
-
+    cf_models = []
     tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
-        evaluator_test, cf_models, output_folder_path, n_cases=50)
+        evaluator_test, cf_models, output_folder_path, n_cases=100)
 
-    # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
-    #     evaluator_validation, evaluator_test, [ItemKNNCBF], output_folder_path, n_cases=200)
+    # cf_models = [UserKNNCF]
+    # tune_cf(stacked_ICM, dataset.URM_train_val, evaluator_validation, 
+    #     evaluator_test, cf_models, output_folder_path, n_cases=2)
 
-    # hybrid_models = [Hybrid2]
-    # tune_hybrid(dataset.URM_train, dataset.URM_train_val, dataset.ICM, 
-    #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=20)
+    cbf_models = []
+    tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
+        evaluator_validation, evaluator_test, cbf_models, output_folder_path, n_cases=100)
+
+    hybrid_models = [Hybrid4]
+    tune_hybrid(stacked_URM, dataset.URM_train_val, dataset.ICM, 
+        evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=100)
     
-    # hyperparameters = {
-    #     'topK': Integer(low=1e2, high=2e3, prior='uniform', base=10),
-    #     'l2_norm': Real(low=1e3, high=1e5, prior='log-uniform'),
-    #     'normalize_matrix': Categorical([False]), # With normalize_matrix:True tends to perform worse
-    # }
-    # tune_one(EASE_R, hyperparameters, evaluator_validation, evaluator_test, output_folder_path, n_cases=60)
-
-# earlystopping_keywargs = {}
-#         if recommender in [IALS, SLIM_BPR]:
-#             earlystopping_keywargs = {
-#                 'validation_every_n': 5,
-#                 'stop_on_validation': True,
-#                 'evaluator_object': EvaluatorHoldout(dataset.URM_test, cutoff_list=[10]),
-#                 'lower_validations_allowed': 5,
-#                 'validation_metric': 'MAP',
-#             } 
-        
-#         recommender.fit(earlystopping_keywargs)
