@@ -1,13 +1,9 @@
-import os
-import numpy as np
 from tqdm import trange
 from numpy.lib.function_base import average
 
 from Utils.Dataset import Dataset
-from Utils.Evaluator import EvaluatorHoldout
-from Utils.methods.get_recommender_instance import get_recommender_instance
 from Utils.import_recommenders import *
-from Utils.methods.ir_feature_weighting import TF_IDF, okapi_BM_25
+from Utils.methods.get_recommender_instance import get_recommender_instance
 
 def evaluate_models(k, URM_trains, ICM, URM_tests, test_models):
     avg_results = []
@@ -35,7 +31,7 @@ if __name__ == '__main__':
         test_models = [
             #ItemKNN_CFCBF_Hybrid,
             #UserKNNCF,
-            ItemKNNCF,
+            #sItemKNNCF,
             #EASE_R,
             #RP3beta
         ]
@@ -44,16 +40,16 @@ if __name__ == '__main__':
 
     else:
         stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train.copy(), dataset.ICM.copy())  
-        output_folder_path = os.path.join('Recommenders', 'saved_models', 'test'+os.sep)
 
-        # model = ItemKNNCF(stacked_URM.copy()) #  MAP = 0.2413
-        # model.evaluate_model(dataset.URM_test)
+        # best MAP = 0.2528 (seed=1234)
+        
+        fit_params = {}
+        model = get_recommender_instance(ItemKNNCF, stacked_URM, dataset.ICM)
+        model.evaluate_model(dataset.URM_test, fit_params, load=False)
 
-        # fit_params = {'topK': 100, 'shrink': 298, 'similarity': 'asymmetric', 'normalize': True, 'asymmetric_alpha': 0.056659072281978876, 'feature_weighting': 'TF-IDF', 'URM_bias': 0.0963202309810741}
-        # model = ItemKNNCF(stacked_URM.copy())
-        # model.evaluate_model(dataset.URM_test, fit_params)
-        model = Hybrid4(stacked_URM.copy(), stacked_ICM.copy())
-        model.evaluate_model(dataset.URM_test) # 0.24926
+        fit_params = {}
+        model = get_recommender_instance(ItemKNNCF, stacked_URM, dataset.ICM)
+        model.evaluate_model(dataset.URM_test, fit_params, load=True)
 
 
 

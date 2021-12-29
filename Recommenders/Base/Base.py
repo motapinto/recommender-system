@@ -135,16 +135,13 @@ class Base(object):
 
         self._print('Loading complete')
 
-    def evaluate_model(self, URM_test, fit_params={}):
+    def evaluate_model(self, URM_test, fit_params={}, load=True):
         start = time.time()
         evaluator_test = EvaluatorHoldout(URM_test, cutoff_list=[10])
 
-        if len(fit_params) == 0:
+        if len(fit_params) == 0 and load:
             output_folder_path = os.path.join('Recommenders', 'saved_models', 'test'+os.sep)
-            try:
-                self.load_model(output_folder_path)
-            except:
-                self.fit()
+            self.load_model(output_folder_path)
         else:
             self.fit(**fit_params)
 

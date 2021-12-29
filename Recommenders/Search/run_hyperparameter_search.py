@@ -240,54 +240,23 @@ def runHyperparameterSearch_Hybrid(
                     run_KNNCFRecommender_on_similarity_type_partial(similarity_type)
 
             return
-        
-        elif recommender_class in [Hybrid1, Hybrid2]:
+
+        elif recommender_class in [Hybrid]:
             hyperparameters_range_dictionary = {
-                'threshold': Integer(0, 20),
-                'alpha': Real(0, 1)
-            }
-
-            recommender_input_args = SearchInputRecommenderArgs(
-                CONSTRUCTOR_POSITIONAL_ARGS = [URM_train, ICM_object],
-                CONSTRUCTOR_KEYWORD_ARGS = {},
-                FIT_POSITIONAL_ARGS = [],
-                FIT_KEYWORD_ARGS = {}
-            )
-
-            if URM_train_last_test is not None:
-                recommender_input_args_last_test = recommender_input_args.copy()
-                recommender_input_args_last_test.CONSTRUCTOR_POSITIONAL_ARGS[0] = URM_train_last_test
-            else:
-                recommender_input_args_last_test = None
-
-            hyperparameterSearch.search(
-                recommender_input_args,
-                hyperparameter_search_space=hyperparameters_range_dictionary,
-                n_cases=n_cases,
-                n_random_starts=n_random_starts,
-                resume_from_saved=resume_from_saved,
-                save_model=save_model,
-                evaluate_on_test=evaluate_on_test,
-                max_total_time=max_total_time,
-                output_folder_path=output_folder_path,
-                output_file_name_root=output_file_name_root,
-                metric_to_optimize=metric_to_optimize,
-                cutoff_to_optimize=cutoff_to_optimize,
-                recommender_input_args_last_test=recommender_input_args_last_test,
-                save_metadata=False)
-
-        elif recommender_class in [Hybrid4]:
-            hyperparameters_range_dictionary = {
-                'alpha': Categorical([0.5]),
-                'beta': Categorical([0.5]),
-                'gamma': Categorical([0.5]),
-                'delta': Real(low=0.1, high=0.9),
-                'epsilon': Categorical([0.5]),
-                'zeta': Categorical([0.5]),
-                'eta': Categorical([0.5]),
+                # 'alpha': Categorical([0.5]),
+                # 'beta': Categorical([0.5]),
+                # 'gamma': Categorical([0.5]),
+                # 'delta': Real(low=0.1, high=0.9),
+                # 'epsilon': Categorical([0.5]),
+                # 'zeta': Categorical([0.5]),
+                # 'eta': Categorical([0.5]),
                 #'norm': Categorical([1, 2, np.inf, -np.inf]),
-                # 'theta': Real(low=0, high=1),
-                # 'iota': Real(low=0, high=1),
+                'imp1': Real(low=0.1, high=0.9),
+                'imp2': Real(low=0.1, high=0.9),
+                'imp4': Real(low=0.1, high=0.9),
+                'imp5': Real(low=0.1, high=0.9),
+                'imp6': Real(low=0.1, high=0.9),
+                'imp7': Real(low=0.1, high=0.9),
             }
 
             recommender_input_args = SearchInputRecommenderArgs(
@@ -388,10 +357,15 @@ def run_KNNRecommender_on_similarity_type(
 
     original_hyperparameter_search_space = hyperparameter_search_space
     hyperparameters_range_dictionary = {
-        'topK': Integer(5, 1000),
-        'shrink': Integer(0, 1000),
-        'similarity': Categorical([similarity_type]),
-        'normalize': Categorical([True, False]),
+        'topK': Integer(5, 1500),
+        'shrink': Integer(0, 1500),
+        'alpha': Real(low=0.0, high=1.0),
+        'normalize': Categorical([True]),
+        'feature_weighting': Categorical(['none', 'BM25', 'TF-IDF']),
+        'asymmetric_alpha': Real(low=0, high=2, prior='uniform'),
+        'tversky_alpha': Real(low=0, high=2, prior='uniform'),
+        'tversky_beta': Real(low=0, high=2, prior='uniform'),
+        'URM_bias': Real(low=100, high=2000, prior='log-uniform')
     }
 
     is_set_similarity = similarity_type in ['tversky', 'dice', 'jaccard', 'tanimoto']

@@ -14,12 +14,8 @@ class EASE_R(BaseItemSimilarityMatrix):
         super(EASE_R, self).__init__(URM_train)
         self.sparse_threshold_quota = sparse_threshold_quota
 
-    # l2_norm=2822.555177926504 is equally good
-    def fit(self, topK=None, l2_norm=3978.277751893026, normalize_matrix=False, validation_every_n=None, verbose=True):
+    def fit(self, topK=None, l2_norm=3907, normalize_matrix=False, verbose=False):
         self.verbose = verbose
-
-        start_time = time.time()
-        self._print('Fitting model... ')
 
         if normalize_matrix:
             # Normalize rows and then columns
@@ -41,9 +37,6 @@ class EASE_R(BaseItemSimilarityMatrix):
         P = np.linalg.inv(grahm_matrix)
         B = P / (-np.diag(P))
         B[diag_indices] = 0.0
-
-        new_time_value, new_time_unit = seconds_to_biggest_unit(time.time()-start_time)
-        self._print('Fitting model... done in {:.2f} {}'.format(new_time_value, new_time_unit))
 
         # Check if the matrix should be saved in a sparse or dense format
         # The matrix is sparse, regardless of the presence of the topK, if nonzero cells are less than sparse_threshold_quota %

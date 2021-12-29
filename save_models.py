@@ -13,7 +13,6 @@ def save_models(URM, ICM, output_folder_path):
         PureSVD,
         RP3beta,
         ItemKNN_CFCBF_Hybrid,
-        SLIM_BPR
     ]
 
     if not os.path.exists(output_folder_path):

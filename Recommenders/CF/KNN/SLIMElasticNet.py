@@ -28,7 +28,7 @@ class SLIMElasticNet(BaseItemSimilarityMatrix):
 
     RECOMMENDER_NAME = 'SLIMElasticNet'
 
-    def __init__(self, URM_train, verbose=True):
+    def __init__(self, URM_train, verbose=False):
         super(SLIMElasticNet, self).__init__(URM_train, verbose=verbose)
 
     @ignore_warnings(category=ConvergenceWarning)

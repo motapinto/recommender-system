@@ -110,19 +110,19 @@ if __name__ == '__main__':
     if not os.path.exists(output_folder_path):
         os.makedirs(output_folder_path)
 
-    cf_models = []
+    # cf_models = []
+    # tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
+    #     evaluator_test, cf_models, output_folder_path, n_cases=100)
+
+    cf_models = [ItemKNNCF]
     tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
-        evaluator_test, cf_models, output_folder_path, n_cases=100)
+        evaluator_test, cf_models, output_folder_path, n_cases=400)
 
-    # cf_models = [UserKNNCF]
-    # tune_cf(stacked_ICM, dataset.URM_train_val, evaluator_validation, 
-    #     evaluator_test, cf_models, output_folder_path, n_cases=2)
+    # cbf_models = []
+    # tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
+    #     evaluator_validation, evaluator_test, cbf_models, output_folder_path, n_cases=100)
 
-    cbf_models = []
-    tune_cbf(dataset.URM_train, dataset.URM_train_val, dataset.ICM,
-        evaluator_validation, evaluator_test, cbf_models, output_folder_path, n_cases=100)
-
-    hybrid_models = [Hybrid4]
-    tune_hybrid(stacked_URM, dataset.URM_train_val, dataset.ICM, 
-        evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=100)
+    # hybrid_models = [Hybrid]
+    # tune_hybrid(stacked_URM, dataset.URM_train_val, dataset.ICM, 
+    #     evaluator_validation, evaluator_test, hybrid_models, output_folder_path, n_cases=100)
     

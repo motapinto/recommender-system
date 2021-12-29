@@ -1,5 +1,7 @@
 import numpy as np
-from Recommenders.recommender_utils import check_matrix
+import scipy.sparse as sps
+from sklearn.preprocessing import normalize
+from Recommenders.recommender_utils import check_matrix, similarityMatrixTopK
 from Recommenders.Base.BaseUserSimilarityMatrix import BaseUserSimilarityMatrix
 from Utils.methods.ir_feature_weighting import okapi_BM_25, TF_IDF
 from Recommenders.Similarity.Compute_Similarity import Compute_Similarity
@@ -8,18 +10,12 @@ class UserKNNCF(BaseUserSimilarityMatrix):
     RECOMMENDER_NAME = 'UserKNNCF'
     FEATURE_WEIGHTING_VALUES = ['BM25', 'TF-IDF', 'none']
 
-    def __init__(self, URM_train, verbose=True):
+    def __init__(self, URM_train, verbose=False):
         super(UserKNNCF, self).__init__(URM_train, verbose=verbose)
     
-    def fit(self, topK=565, shrink=0, similarity='tversky', normalize=True, feature_weighting='none', URM_bias=True, **similarity_args):
+    def fit(self, topK=565, shrink=0, alpha=0.85, feature_weighting='none', URM_bias=1000, tversky_alpha=1.85, tversky_beta=1.350, asymmetric_alpha=0.75):
         self.topK = topK
         self.shrink = shrink
-
-        if(len(similarity_args) == 0):
-            similarity_args = {
-                'tversky_alpha': 2.0, 
-                'tversky_beta': 1.3485938404432127,
-            } 
 
         if feature_weighting not in self.FEATURE_WEIGHTING_VALUES:
             raise ValueError(f'Value for \'feature_weighting\' not recognized. Acceptable values are {self.FEATURE_WEIGHTING_VALUES}, provided was {feature_weighting}')
@@ -37,7 +33,9 @@ class UserKNNCF(BaseUserSimilarityMatrix):
             self.URM_train = TF_IDF(self.URM_train.T).T
             self.URM_train = check_matrix(self.URM_train, 'csr')
 
-        similarity = Compute_Similarity(self.URM_train.T, shrink=shrink, topK=topK, normalize=normalize, similarity=similarity, **similarity_args)
+        sim1 = Compute_Similarity(self.URM_train.T, shrink=shrink, topK=topK, normalize=True, similarity='tversky', tversky_alpha=tversky_alpha, tversky_beta=tversky_beta)
+        sim2 = Compute_Similarity(self.URM_train.T, shrink=shrink, topK=topK, normalize=True, similarity='asymmetric', asymmetric_alpha=asymmetric_alpha)
 
-        self.W_sparse = similarity.compute_similarity()
+        self.W_sparse = sim1.compute_similarity()*alpha + sim2.compute_similarity()*(1-alpha)
+        self.W_sparse = similarityMatrixTopK(self.W_sparse, k=self.topK)
         self.W_sparse = check_matrix(self.W_sparse, format='csr')

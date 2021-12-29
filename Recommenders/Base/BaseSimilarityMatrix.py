@@ -7,7 +7,7 @@ class BaseSimilarityMatrix(Base):
     bot for user-based and Item-based models as well as a function to save the W_matrix
     '''
 
-    def __init__(self, URM_train, verbose=True):
+    def __init__(self, URM_train, verbose=False):
         super(BaseSimilarityMatrix, self).__init__(URM_train, verbose=verbose)
         self._URM_train_format_checked = False
         self._W_sparse_format_checked = False
