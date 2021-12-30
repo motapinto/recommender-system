@@ -14,19 +14,21 @@ class EASE_R(BaseItemSimilarityMatrix):
         super(EASE_R, self).__init__(URM_train)
         self.sparse_threshold_quota = sparse_threshold_quota
 
-    def fit(self, topK=None, l2_norm=3907, normalize_matrix=False, verbose=False):
+    def fit(self, topK=None, l2_norm=3907, verbose=False):
         self.verbose = verbose
 
-        if normalize_matrix:
-            # Normalize rows and then columns
-            self.URM_train = normalize(self.URM_train, norm='l2', axis=1)
-            self.URM_train = normalize(self.URM_train, norm='l2', axis=0)
-            self.URM_train = sps.csr_matrix(self.URM_train)
-
         # Grahm matrix is X^t X, compute dot product
-        similarity = Compute_Similarity(self.URM_train, shrink=0, topK=self.URM_train.shape[1], normalize=False, similarity = 'cosine')
+        similarity = Compute_Similarity(self.URM_train, shrink=0, topK=self.URM_train.shape[1], normalize=False, similarity='cosine')
         grahm_matrix = similarity.compute_similarity().toarray()
+        
+        #sim1 = Compute_Similarity(self.URM_train, shrink=0, topK=self.URM_train.shape[1], normalize=True, similarity='tversky', tversky_alpha=1.85, tversky_beta=1.350)
+        #sim2 = Compute_Similarity(self.URM_train, shrink=0, topK=self.URM_train.shape[1], normalize=True, similarity='asymmetric', asymmetric_alpha=0.75)
+        #grahm_matrix = (sim1.compute_similarity()).toarray()
 
+        #print(similarity.compute_similarity().toarray().shape)
+        # print(sim1.compute_similarity().toarray().shape)
+        # print(sim2.compute_similarity().toarray().shape)
+        
         diag_indices = np.diag_indices(grahm_matrix.shape[0])
 
         # The Compute_Similarity object ensures the diagonal of the similarity matrix is zero
@@ -64,12 +66,6 @@ class EASE_R(BaseItemSimilarityMatrix):
         return nonzero / (matrix.shape[0]**2) <= self.sparse_threshold_quota
 
     def _compute_score_W_dense(self, user_id_array, items_to_compute = None):
-        '''
-        URM_train and W_sparse must have the same format, CSR
-        :param user_id_array:
-        :param items_to_compute:
-        :return:
-        '''
         self._check_format()
         user_profile_array = self.URM_train[user_id_array]
 

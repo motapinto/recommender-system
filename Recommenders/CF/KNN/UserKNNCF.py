@@ -13,7 +13,7 @@ class UserKNNCF(BaseUserSimilarityMatrix):
     def __init__(self, URM_train, verbose=False):
         super(UserKNNCF, self).__init__(URM_train, verbose=verbose)
     
-    def fit(self, topK=565, shrink=0, alpha=0.85, feature_weighting='none', URM_bias=1000, tversky_alpha=1.85, tversky_beta=1.350, asymmetric_alpha=0.75):
+    def fit(self, topK=565, shrink=0, alpha=0.85, feature_weighting='none', URM_bias=1000, tversky_alpha=1.85, tversky_beta=1.35, asymmetric_alpha=0.75):
         self.topK = topK
         self.shrink = shrink
 

@@ -44,12 +44,12 @@ if __name__ == '__main__':
         # best MAP = 0.2528 (seed=1234)
         
         fit_params = {}
-        model = get_recommender_instance(ItemKNNCF, stacked_URM, dataset.ICM)
-        model.evaluate_model(dataset.URM_test, fit_params, load=False)
+        model = get_recommender_instance(Hybrid, stacked_URM, dataset.ICM)
+        model.evaluate_model(dataset.URM_test, fit_params, load=False) # 0.245309
 
-        fit_params = {}
-        model = get_recommender_instance(ItemKNNCF, stacked_URM, dataset.ICM)
-        model.evaluate_model(dataset.URM_test, fit_params, load=True)
+        # fit_params = {}
+        # model = get_recommender_instance(EASE_R, stacked_URM, dataset.ICM)
+        # model.evaluate_model(dataset.URM_test, fit_params, load=True) # 0.245346
 
 
 
