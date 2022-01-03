@@ -40,16 +40,10 @@ if __name__ == '__main__':
 
     else:
         stacked_URM, stacked_ICM = dataset.stack_URM_ICM(dataset.URM_train.copy(), dataset.ICM.copy())  
-
-        # best MAP = 0.2528 (seed=1234)
         
         fit_params = {}
         model = get_recommender_instance(Hybrid, stacked_URM, dataset.ICM)
-        model.evaluate_model(dataset.URM_test, fit_params, load=False) # 0.245309
-
-        # fit_params = {}
-        # model = get_recommender_instance(EASE_R, stacked_URM, dataset.ICM)
-        # model.evaluate_model(dataset.URM_test, fit_params, load=True) # 0.245346
+        model.evaluate_model(dataset.URM_test, fit_params, load=False)
 
 
 

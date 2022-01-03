@@ -637,7 +637,7 @@ def runHyperparameterSearch_Collaborative(
         # Already highly tuned
         elif recommender_class is RP3beta:
             hyperparameters_range_dictionary = {
-                'topK': Integer(100, 1500),
+                'topK': Integer(100, 2000),
                 'alpha': Real(low=0.6, high=1, prior='uniform'),
                 'beta': Real(low=0.2, high=0.8, prior='uniform'),
                 'normalize_similarity': Categorical([True, False]),

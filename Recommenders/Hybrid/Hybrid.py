@@ -35,24 +35,8 @@ class Hybrid(Base):
 
         self.num_train_items = URM_train.shape[1]
 
-    def fit(self, alpha=0.9, beta=0.95, gamma=0.65, delta=0.5, epsilon=0.55, zeta=0.3, norm='max',
-        imp1=0.48, imp2=0.7, imp4=0.8, imp5=0.8, imp6=0.8, imp7=0.8
-    ):   
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.delta = delta
-        self.epsilon = epsilon
-        self.zeta = zeta
-        
+    def fit(self, norm='max'):   
         self.norm = norm
-
-        self.imp1 = imp1
-        self.imp2 = imp2
-        self.imp4 = imp4
-        self.imp5 = imp5
-        self.imp6 = imp6
-        self.imp7 = imp7
 
     def _compute_item_score(self, user_id_array, items_to_compute=None):
         item_weights = np.zeros([len(user_id_array), self.num_train_items])
@@ -78,7 +62,7 @@ class Hybrid(Base):
                 alpha = 0.47
                 beta = 0.92
                 gamma = 0.50
-                w = alpha*(w1*(beta) + w2*(1-beta)) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
                 
                 # Test other combination of weights
                 #w = alpha*w1 + (1-alpha)*(beta*w2 + (1-beta)*(gamma*w3 + (1-gamma)*w4)
@@ -99,9 +83,8 @@ class Hybrid(Base):
                 alpha = 0.48
                 beta = 0.94
                 gamma = 0.46
-                w = alpha*(w1*(beta) + w2*(1-beta)) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
                 
-            # Optimize this group next (try 3 recommenders, and different apha, beta, gamma)
             elif interactions < 186: # group 2
                 w1 = slim_elastic_net_w[idx]
                 if np.any(w1): w1 = normalize(w1.reshape(1, -1), self.norm, axis=1)
@@ -112,11 +95,11 @@ class Hybrid(Base):
                 w4 = user_knn_cf_w[idx]
                 if np.any(w4): w4 = normalize(w4.reshape(1, -1), self.norm, axis=1)
                 
-                alpha = 0.48
-                beta = 0.94
-                gamma = 0.46
-                w = alpha*(w1*(beta) + w2*(1-beta)) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
-
+                alpha = 0.47
+                beta = 0.98
+                gamma = 0.45
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
+            
             elif interactions < 228: # group 3
                 w1 = slim_elastic_net_w[idx]
                 if np.any(w1): w1 = normalize(w1.reshape(1, -1), self.norm, axis=1)
@@ -124,10 +107,13 @@ class Hybrid(Base):
                 if np.any(w2): w2 = normalize(w2.reshape(1, -1), self.norm, axis=1)
                 w3 = item_knn_cf_w[idx]
                 if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
+                w4 = user_knn_cf_w[idx]
+                if np.any(w4): w4 = normalize(w4.reshape(1, -1), self.norm, axis=1)
                 
-                alpha = 0.6
-                beta = 0.7
-                w = alpha*w1 + (1-alpha)*(beta*w2 + (1-beta)*w3)
+                alpha = 0.47
+                beta = 0.95
+                gamma = 0.45
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
             
             elif interactions < 272: # group 4
                 w1 = slim_elastic_net_w[idx]
@@ -136,32 +122,53 @@ class Hybrid(Base):
                 if np.any(w2): w2 = normalize(w2.reshape(1, -1), self.norm, axis=1)
                 w3 = item_knn_cf_w[idx]
                 if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
+                w4 = user_knn_cf_w[idx]
+                if np.any(w4): w4 = normalize(w4.reshape(1, -1), self.norm, axis=1)
                 
-                alpha = 0.6
-                beta = 0.7
-                w = alpha*w1 + (1-alpha)*(beta*w2 + (1-beta)*w3)
-                         
-            elif interactions < 354: 
+                alpha = 0.65
+                beta = 0.94
+                gamma = 0.45  
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
+
+            elif interactions < 319: # group 5
                 w1 = slim_elastic_net_w[idx]
                 if np.any(w1): w1 = normalize(w1.reshape(1, -1), self.norm, axis=1)
                 w2 = ease_r_w[idx]
                 if np.any(w2): w2 = normalize(w2.reshape(1, -1), self.norm, axis=1)
                 w3 = item_knn_cf_w[idx]
                 if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
-
-                alpha = 0.75
-                beta = 0.6
-                w = alpha*(w1*beta + w2*(1-beta)) + (1-alpha)*w3
+                w4 = user_knn_cf_w[idx]
+                if np.any(w4): w4 = normalize(w4.reshape(1, -1), self.norm, axis=1)
+                
+                alpha = 0.69
+                beta = 0.98
+                gamma = 0.5  
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
             
-            elif interactions < 485: 
-                w1 = item_knn_cf_w[idx]
+            elif interactions < 373: # group 6 
+                w1 = slim_elastic_net_w[idx]
                 if np.any(w1): w1 = normalize(w1.reshape(1, -1), self.norm, axis=1)
                 w2 = ease_r_w[idx]
                 if np.any(w2): w2 = normalize(w2.reshape(1, -1), self.norm, axis=1)
+                w3 = item_knn_cf_w[idx]
+                if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
+                w4 = user_knn_cf_w[idx]
+                if np.any(w4): w4 = normalize(w4.reshape(1, -1), self.norm, axis=1)
+                
+                alpha = 0.65
+                beta = 0.91
+                gamma = 0.44
+                w = alpha*(beta*w1 + (1-beta)*w2) + (1-alpha)*(gamma*w3 + (1-gamma)*w4)
+            
+            elif interactions < 452: # group 7
+                w1 = ease_r_w[idx]
+                if np.any(w1): w1 = normalize(w1.reshape(1, -1), self.norm, axis=1)
+                w2 = item_knn_cf_w[idx]
+                if np.any(w2): w2 = normalize(w2.reshape(1, -1), self.norm, axis=1)
                 w3 = slim_elastic_net_w[idx]
                 if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
-
-                alpha = 0.55
+                
+                alpha = 0.3
                 beta = 0.6
                 w = alpha*w1 + (1-alpha)*(beta*w2 + (1-beta)*w3)
 
@@ -173,8 +180,8 @@ class Hybrid(Base):
                 w3 = slim_elastic_net_w[idx]
                 if np.any(w3): w3 = normalize(w3.reshape(1, -1), self.norm, axis=1)
                 
-                alpha = 0.3
-                beta = 0.45
+                alpha = 0.31
+                beta = 0.6
                 w = alpha*w1 + (1-alpha)*(beta*w2 + (1-beta)*w3)
             
             else: # group 9
@@ -193,4 +200,4 @@ class Hybrid(Base):
 
         return item_weights
 
-# MAP = 0.253722
+# MAP = 0.25404

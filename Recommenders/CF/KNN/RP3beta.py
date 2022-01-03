@@ -24,7 +24,7 @@ class RP3beta(BaseItemSimilarityMatrix):
         self.normalize_similarity = normalize_similarity
 
         #Pui is the row-normalized urm
-        Pui = normalize(self.URM_train, norm='l1', axis=1)
+        Pui = normalize(self.URM_train, norm='l2', axis=1)
 
         #Piu is the column-normalized, 'boolean' urm transposed
         X_bool = self.URM_train.transpose(copy=True)
@@ -39,7 +39,7 @@ class RP3beta(BaseItemSimilarityMatrix):
         degree[nonZeroMask] = np.power(X_bool_sum[nonZeroMask], -self.beta)
 
         #ATTENTION: axis is still 1 because i transposed before the normalization
-        Piu = normalize(X_bool, norm='l1', axis=1)
+        Piu = normalize(X_bool, norm='l2', axis=1)
         del(X_bool)
 
         # Alfa power
@@ -112,7 +112,7 @@ class RP3beta(BaseItemSimilarityMatrix):
         self.W_sparse = sps.csr_matrix((values[:numCells], (rows[:numCells], cols[:numCells])), shape=(Pui.shape[1], Pui.shape[1]))
 
         if self.normalize_similarity:
-            self.W_sparse = normalize(self.W_sparse, norm='l1', axis=1)
+            self.W_sparse = normalize(self.W_sparse, norm='l2', axis=1)
 
         if self.topK != False:
             self.W_sparse = similarityMatrixTopK(self.W_sparse, k=self.topK)

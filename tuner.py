@@ -114,7 +114,7 @@ if __name__ == '__main__':
     # tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
     #     evaluator_test, cf_models, output_folder_path, n_cases=100)
 
-    cf_models = [ItemKNNCF]
+    cf_models = [EASE_R]
     tune_cf(stacked_URM, dataset.URM_train_val, evaluator_validation, 
         evaluator_test, cf_models, output_folder_path, n_cases=400)
 
